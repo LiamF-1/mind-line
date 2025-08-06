@@ -33,6 +33,7 @@ RUN pnpm prisma generate
 
 # Build the application
 WORKDIR /app
+ENV BUILD_STANDALONE=true
 RUN pnpm run build
 
 # Stage 3: Runner

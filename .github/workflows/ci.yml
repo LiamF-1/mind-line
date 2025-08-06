@@ -82,6 +82,7 @@ jobs:
       - name: Build application
         run: pnpm build
         env:
+          IS_BUILD: 'true'
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/mindline_test
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: test-secret
