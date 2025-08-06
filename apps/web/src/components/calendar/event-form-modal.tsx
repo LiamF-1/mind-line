@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,7 +13,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogOverlay,
+  DialogPortal,
 } from '@/components/ui/dialog'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -208,10 +214,34 @@ export function EventFormModal({
     updateMutation.isPending ||
     deleteMutation.isPending
 
+  // Custom dialog content with animation from top-right
+  const CustomDialogContent = ({
+    className,
+    children,
+    ...props
+  }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>) => (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        className={cn(
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-right-full data-[state=closed]:slide-out-to-top-[10%] data-[state=open]:slide-in-from-right-full data-[state=open]:slide-in-from-top-[10%] fixed top-[50%] left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-300 sm:rounded-lg',
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <CustomDialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -221,7 +251,9 @@ export function EventFormModal({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title" className="mb-2 block">
+                Title *
+              </Label>
               <Input
                 id="title"
                 {...register('title')}
@@ -236,7 +268,9 @@ export function EventFormModal({
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="mb-2 block">
+                Description
+              </Label>
               <Textarea
                 id="description"
                 {...register('description')}
@@ -256,7 +290,10 @@ export function EventFormModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="startsAt" className="flex items-center gap-2">
+                <Label
+                  htmlFor="startsAt"
+                  className="mb-2 flex items-center gap-2"
+                >
                   <Clock className="h-4 w-4" />
                   Start {watchAllDay ? 'Date' : 'Time'}
                 </Label>
@@ -274,7 +311,7 @@ export function EventFormModal({
               </div>
 
               <div>
-                <Label htmlFor="endsAt">
+                <Label htmlFor="endsAt" className="mb-2 block">
                   End {watchAllDay ? 'Date' : 'Time'}
                 </Label>
                 <Input
@@ -292,7 +329,10 @@ export function EventFormModal({
             </div>
 
             <div>
-              <Label htmlFor="location" className="flex items-center gap-2">
+              <Label
+                htmlFor="location"
+                className="mb-2 flex items-center gap-2"
+              >
                 <MapPin className="h-4 w-4" />
                 Location
               </Label>
@@ -304,11 +344,11 @@ export function EventFormModal({
             </div>
 
             <div>
-              <Label className="flex items-center gap-2">
+              <Label className="mb-2 flex items-center gap-2">
                 <Palette className="h-4 w-4" />
                 Color
               </Label>
-              <div className="mt-2 flex gap-2">
+              <div className="flex gap-2">
                 {colorOptions.map((color) => (
                   <button
                     key={color.value}
@@ -359,7 +399,7 @@ export function EventFormModal({
               </div>
             </div>
           </form>
-        </DialogContent>
+        </CustomDialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

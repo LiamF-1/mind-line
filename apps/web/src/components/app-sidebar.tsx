@@ -59,7 +59,7 @@ export function AppSidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
+    <div className="hidden md:flex md:w-64 md:flex-shrink-0 md:flex-col">
       <div className="flex flex-grow flex-col overflow-y-auto border-r border-gray-200 bg-white pt-5 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex flex-shrink-0 items-center px-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">

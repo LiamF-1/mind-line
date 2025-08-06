@@ -14,6 +14,18 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import '@/styles/calendar.css'
 
+// Configure moment to use 24-hour format
+moment.locale('en', {
+  longDateFormat: {
+    LT: 'HH:mm',
+    LTS: 'HH:mm:ss',
+    L: 'DD/MM/YYYY',
+    LL: 'D MMMM YYYY',
+    LLL: 'D MMMM YYYY HH:mm',
+    LLLL: 'dddd D MMMM YYYY HH:mm',
+  },
+})
+
 const localizer = momentLocalizer(moment)
 
 interface CalendarEvent {
@@ -102,10 +114,9 @@ export function Calendar({ onDateSelect, onEventSelect }: CalendarProps) {
     return {
       style: {
         backgroundColor: event.color,
-        borderColor: event.color,
         color: 'white',
         borderRadius: '4px',
-        border: 'none',
+        borderWidth: '0px',
         fontSize: '12px',
       },
     }
@@ -152,7 +163,9 @@ export function Calendar({ onDateSelect, onEventSelect }: CalendarProps) {
         </div>
 
         <h2 className="text-xl font-semibold">
-          {moment(currentDate).format('MMMM YYYY')}
+          {view === 'day'
+            ? moment(currentDate).format('dddd, D MMMM YYYY')
+            : moment(currentDate).format('MMMM YYYY')}
         </h2>
 
         <div className="flex gap-1">
@@ -195,6 +208,16 @@ export function Calendar({ onDateSelect, onEventSelect }: CalendarProps) {
           step={30}
           showMultiDayTimes
           className="p-4"
+          formats={{
+            timeGutterFormat: 'HH:mm',
+            eventTimeRangeFormat: ({ start, end }) => {
+              return `${moment(start).format('HH:mm')} - ${moment(end).format('HH:mm')}`
+            },
+            agendaTimeFormat: 'HH:mm',
+            agendaTimeRangeFormat: ({ start, end }) => {
+              return `${moment(start).format('HH:mm')} - ${moment(end).format('HH:mm')}`
+            },
+          }}
         />
       </div>
     </div>
