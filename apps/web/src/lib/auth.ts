@@ -12,6 +12,10 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
   },
+  // Ensure NextAuth has a valid URL during build
+  ...(process.env.NEXTAUTH_URL && {
+    url: process.env.NEXTAUTH_URL,
+  }),
   providers: [
     CredentialsProvider({
       name: 'credentials',
