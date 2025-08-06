@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "pnpm -r dev",
-    "build": "pnpm -r build",
+    "build": "pnpm db:generate && pnpm -r build",
     "migrate": "pnpm --filter web exec prisma migrate dev --name init",
     "db:push": "pnpm --filter web exec prisma db push",
     "db:generate": "pnpm --filter web exec prisma generate",
