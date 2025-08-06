@@ -52,9 +52,8 @@ COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema (client is auto-generated in node_modules)
 COPY --from=builder /app/apps/web/prisma ./apps/web/prisma
-COPY --from=builder /app/apps/web/node_modules/.prisma ./apps/web/node_modules/.prisma
 
 USER nextjs
 

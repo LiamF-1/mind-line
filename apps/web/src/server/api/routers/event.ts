@@ -1,14 +1,20 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 
-const eventInput = z.object({
-  title: z.string().min(1),
-  description: z.string().optional(),
-  startsAt: z.date(),
-  endsAt: z.date(),
-  allDay: z.boolean().default(false),
-  color: z.string().default('#3b82f6'),
-})
+const eventInput = z
+  .object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().optional(),
+    startsAt: z.date(),
+    endsAt: z.date(),
+    allDay: z.boolean().default(false),
+    color: z.string().default('#3b82f6'),
+    location: z.string().optional(),
+  })
+  .refine((data) => data.endsAt > data.startsAt, {
+    message: 'End time must be after start time',
+    path: ['endsAt'],
+  })
 
 export const eventRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
