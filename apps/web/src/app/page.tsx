@@ -8,7 +8,7 @@ export default function HomePage() {
           <h1 className="mb-8 text-6xl font-bold text-gray-900 dark:text-white">
             Welcome to{' '}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ProdTool
+              MindLine
             </span>
           </h1>
 
@@ -97,7 +97,7 @@ export default function HomePage() {
 
           <div className="space-y-4 sm:flex sm:justify-center sm:space-y-0 sm:space-x-4">
             <Link
-              href="/auth/signin"
+              href="/login"
               className="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-8 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-blue-700 sm:w-auto"
             >
               Get Started

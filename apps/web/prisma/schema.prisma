@@ -15,7 +15,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String?   // For credentials provider
+  passwordHash  String    // Hashed password for credentials provider
   emailVerified DateTime?
   image         String?
   createdAt     DateTime  @default(now())
@@ -28,6 +28,7 @@ model User {
   events        CalendarEvent[]
   notes         Note[]
 
+  @@index([email])
   @@map("users")
 }
 

@@ -3,6 +3,7 @@ import { taskRouter } from './routers/task'
 import { eventRouter } from './routers/event'
 import { noteRouter } from './routers/note'
 import { userRouter } from './routers/user'
+import { authRouter } from './routers/auth'
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { userRouter } from './routers/user'
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  auth: authRouter,
   task: taskRouter,
   event: eventRouter,
   note: noteRouter,

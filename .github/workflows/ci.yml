@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
-          POSTGRES_DB: prodtool_test
+          POSTGRES_DB: mindline_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -63,6 +63,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
       - name: Run type check
         run: pnpm typecheck
 
@@ -72,14 +75,14 @@ jobs:
       - name: Run tests
         run: pnpm test
         env:
-          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/prodtool_test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/mindline_test
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: test-secret
 
       - name: Build application
         run: pnpm build
         env:
-          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/prodtool_test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/mindline_test
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: test-secret
           NEXTAUTH_URL: http://localhost:3000

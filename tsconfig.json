@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@prodtool/config": ["./packages/config"]
+      "@mindline/config": ["./packages/config"]
     }
   },
   "include": [],

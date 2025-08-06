@@ -73,6 +73,13 @@ cp apps/web/.env.example apps/web/.env.local
 # The defaults should work for local development
 ```
 
+**Environment Variables:**
+
+- `POSTGRES_URL`: Database connection string for PostgreSQL
+- `REDIS_URL`: Redis connection string for caching and sessions
+- `NEXTAUTH_URL`: Your application URL (http://localhost:3000 for local development)
+- `NEXTAUTH_SECRET`: Secret key for NextAuth.js (minimum 32 characters, change in production)
+
 ### 4. Initialize Database
 
 ```bash
@@ -94,6 +101,42 @@ pnpm dev
 
 # Your app will be available at http://localhost:3000
 ```
+
+## 🔐 Authentication
+
+The application includes a complete authentication system with:
+
+### User Registration & Login
+
+- **Registration**: Create new accounts at `/register`
+- **Login**: Sign in at `/login`
+- **Dashboard**: Protected area at `/dashboard`
+
+### Authentication Flow
+
+```
+1. User visits landing page (/)
+2. Click "Get Started" → redirects to /register
+3. Fill registration form → creates account & auto-login
+4. Redirected to /dashboard (protected route)
+5. Can logout → returns to landing page
+```
+
+### First User Setup
+
+Create your first user account by:
+
+1. Starting the application (`pnpm dev`)
+2. Navigate to http://localhost:3000
+3. Click "Get Started" or go directly to `/register`
+4. Fill out the registration form
+5. You'll be automatically logged in and redirected to the dashboard
+
+### API Endpoints
+
+- `POST /api/auth/register` - User registration
+- `GET|POST /api/auth/[...nextauth]` - NextAuth.js authentication routes
+- Protected tRPC procedures for user management
 
 ## 📝 Available Scripts
 

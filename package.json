@@ -1,7 +1,7 @@
 {
-  "name": "prodtool",
+  "name": "mindline",
   "version": "1.0.0",
-  "description": "Scalable full-stack monorepo with Next.js 15, tRPC, and PostgreSQL",
+  "description": "Scalable full-stack productivity suite with Next.js 15, tRPC, and PostgreSQL",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -10,9 +10,9 @@
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm db:generate && pnpm -r build",
-    "migrate": "pnpm --filter web exec prisma migrate dev --name init",
-    "db:push": "pnpm --filter web exec prisma db push",
-    "db:generate": "pnpm --filter web exec prisma generate",
+    "migrate": "pnpm --filter mindline-web exec prisma migrate dev --name init",
+    "db:push": "pnpm --filter mindline-web exec prisma db push",
+    "db:generate": "pnpm --filter mindline-web exec prisma generate",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
