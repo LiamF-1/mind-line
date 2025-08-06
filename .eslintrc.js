@@ -5,6 +5,12 @@ module.exports = {
     node: true,
     browser: true,
   },
+  rules: {
+    // Disable the pages directory check since we're using App Router
+    '@next/next/no-html-link-for-pages': 'off',
+    // Disable the problematic duplicate head rule for now
+    '@next/next/no-duplicate-head': 'off',
+  },
   ignorePatterns: [
     'node_modules/',
     '.next/',

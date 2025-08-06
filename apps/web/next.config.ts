@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  // Optimize for Docker builds
+  experimental: {
+    outputFileTracingRoot: process.cwd(),
+  },
 }
 
 export default nextConfig

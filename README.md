@@ -138,6 +138,125 @@ Create your first user account by:
 - `GET|POST /api/auth/[...nextauth]` - NextAuth.js authentication routes
 - Protected tRPC procedures for user management
 
+## 📅 Calendar Feature
+
+The Mindline calendar provides a complete event management system with a professional interface and full CRUD operations.
+
+### Features
+
+- **Multiple Views**: Month, week, and day views with smooth navigation
+- **Event Management**: Create, read, update, and delete events
+- **Rich Event Data**: Title, description, date/time, all-day events, location, and color coding
+- **Dashboard Integration**: Today's events and upcoming events displayed on dashboard
+- **Responsive Design**: Mobile-friendly with collapsible sidebar
+- **Real-time Updates**: Optimistic UI updates with toast notifications
+
+### Calendar API
+
+The calendar uses tRPC procedures for type-safe API calls:
+
+```typescript
+// Get events by date range
+const events = api.event.getByDateRange.useQuery({
+  start: new Date('2024-01-01'),
+  end: new Date('2024-01-31'),
+})
+
+// Create a new event
+const createEvent = api.event.create.useMutation()
+await createEvent.mutateAsync({
+  title: 'Team Meeting',
+  description: 'Weekly sync meeting',
+  startsAt: new Date('2024-01-15T10:00:00Z'),
+  endsAt: new Date('2024-01-15T11:00:00Z'),
+  allDay: false,
+  color: '#3b82f6',
+  location: 'Conference Room A',
+})
+
+// Update an existing event
+const updateEvent = api.event.update.useMutation()
+await updateEvent.mutateAsync({
+  id: 'event-id',
+  data: { title: 'Updated Meeting Title' },
+})
+
+// Delete an event
+const deleteEvent = api.event.delete.useMutation()
+await deleteEvent.mutateAsync({ id: 'event-id' })
+```
+
+### Event Schema
+
+```typescript
+interface CalendarEvent {
+  id: string
+  title: string
+  description?: string
+  startsAt: Date
+  endsAt: Date
+  allDay: boolean
+  color: string
+  location?: string
+  userId: string
+  createdAt: Date
+  updatedAt: Date
+}
+```
+
+### Usage Examples
+
+#### Creating Events with cURL
+
+```bash
+# Create a new event (requires authentication)
+curl -X POST 'http://localhost:3000/api/trpc/event.create' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "Project Review",
+    "description": "Quarterly project review meeting",
+    "startsAt": "2024-01-15T14:00:00Z",
+    "endsAt": "2024-01-15T15:30:00Z",
+    "allDay": false,
+    "color": "#22c55e",
+    "location": "Room 101"
+  }'
+```
+
+#### React Hook Usage
+
+```typescript
+import { api } from '@/lib/trpc-client'
+
+function MyCalendarComponent() {
+  // Fetch events for current month
+  const { data: events, isLoading } = api.event.getByDateRange.useQuery({
+    start: startOfMonth(new Date()),
+    end: endOfMonth(new Date())
+  })
+
+  // Create event mutation
+  const createEvent = api.event.create.useMutation({
+    onSuccess: () => {
+      toast.success('Event created successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    }
+  })
+
+  const handleCreateEvent = (eventData) => {
+    createEvent.mutate(eventData)
+  }
+
+  return (
+    <div>
+      {/* Your calendar UI */}
+    </div>
+  )
+}
+```
+
 ## 📝 Available Scripts
 
 ### Root Level Commands
