@@ -15,7 +15,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import '@/styles/calendar.css'
 
 // Configure moment to use 24-hour format
-moment.locale('en', {
+moment.updateLocale('en', {
   longDateFormat: {
     LT: 'HH:mm',
     LTS: 'HH:mm:ss',

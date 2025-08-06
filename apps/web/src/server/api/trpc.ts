@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth/next'
 import { type Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { redis } from '@/lib/redis'
+import { getRedis } from '@/lib/redis'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 
@@ -27,7 +27,7 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
     session: opts.session,
     req: opts.req,
     prisma,
-    redis,
+    redis: getRedis(),
   }
 }
 
