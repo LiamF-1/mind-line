@@ -1,0 +1,12 @@
+{
+  "name": "@prodtool/config",
+  "version": "1.0.0",
+  "description": "Shared configuration for prodtool monorepo",
+  "main": "index.js",
+  "private": true,
+  "files": [
+    "eslint.js",
+    "prettier.js",
+    "tsconfig.json"
+  ]
+}

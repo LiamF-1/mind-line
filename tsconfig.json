@@ -1,0 +1,15 @@
+{
+  "extends": "./packages/config/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@prodtool/config": ["./packages/config"]
+    }
+  },
+  "include": [],
+  "references": [
+    {
+      "path": "./apps/web"
+    }
+  ]
+}
