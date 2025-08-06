@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm db:generate && pnpm -r build",
+    "start": "pnpm --filter mindline-web exec next start -p $PORT",
+    "start:standalone": "node apps/web/.next/standalone/server.js",
     "migrate": "pnpm --filter mindline-web exec prisma migrate dev --name init",
     "db:push": "pnpm --filter mindline-web exec prisma db push",
     "db:generate": "pnpm --filter mindline-web exec prisma generate",

@@ -53,13 +53,10 @@ RUN adduser --system --uid 1001 nextjs
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy built application
-COPY --from=builder /app/apps/web/public ./apps/web/public
+# Copy built application from standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-
-# Copy Prisma schema (client is auto-generated in node_modules)
-COPY --from=builder /app/apps/web/prisma ./apps/web/prisma
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 USER nextjs
 
@@ -70,4 +67,4 @@ ENV NODE_ENV=production
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "apps/web/server.js"]
+CMD ["node", "server.js"]
