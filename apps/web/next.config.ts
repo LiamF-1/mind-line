@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  // Fix for Next.js 15 not-found page prerendering issue
+  // https://github.com/vercel/next.js/issues/65447
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   // Only use standalone output for production Docker builds
   ...(process.env.BUILD_STANDALONE === 'true' && {
     output: 'standalone',

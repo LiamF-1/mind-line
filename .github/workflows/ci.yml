@@ -83,8 +83,12 @@ jobs:
         run: pnpm build
         env:
           IS_BUILD: 'true'
+          NODE_ENV: production
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/mindline_test
           REDIS_URL: redis://localhost:6379
           NEXTAUTH_SECRET: test-secret-minimum-32-characters-long
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_APP_URL: http://localhost:3000
+          # Additional env vars that might be needed during prerendering
+          VERCEL_URL: localhost:3000
+          PORT: 3000
