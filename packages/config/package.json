@@ -1,7 +1,7 @@
 {
-  "name": "@prodtool/config",
+  "name": "@mindline/config",
   "version": "1.0.0",
-  "description": "Shared configuration for prodtool monorepo",
+  "description": "Shared configuration for Mindline monorepo",
   "main": "index.js",
   "private": true,
   "files": [

@@ -1,7 +1,7 @@
 {
-  "name": "prodtool",
+  "name": "mindline",
   "version": "1.0.0",
-  "description": "Scalable full-stack monorepo with Next.js 15, tRPC, and PostgreSQL",
+  "description": "Scalable full-stack productivity suite with Next.js 15, tRPC, and PostgreSQL",
   "private": true,
   "workspaces": [
     "apps/*",

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ProdTool - Scalable Productivity Suite',
+  title: 'MindLine - Scalable Productivity Suite',
   description:
     'A modern productivity application built with Next.js 15, tRPC, and PostgreSQL',
 }

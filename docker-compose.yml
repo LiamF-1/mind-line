@@ -3,12 +3,12 @@ version: '3.8'
 services:
   db:
     image: postgres:16
-    container_name: prodtool-postgres
+    container_name: mindline-postgres
     restart: unless-stopped
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_DB: prodtool
+      POSTGRES_DB: mindline
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
@@ -22,7 +22,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: prodtool-redis
+    container_name: mindline-redis
     restart: unless-stopped
     ports:
       - '6379:6379'
