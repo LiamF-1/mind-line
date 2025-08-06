@@ -5,8 +5,8 @@ import Link from 'next/link'
 // This page must be completely static - no server-side code or env vars
 // https://github.com/vercel/next.js/issues/65447
 
-// Prevent any server-side execution during build
-export const dynamic = 'force-static' // Force static generation
+// Prevent prerendering issues with Next.js 15 not-found page
+export const dynamic = 'force-dynamic' // Keep route dynamic (fastest escape hatch)
 
 export default function NotFound() {
   // Ensure this page is completely static and doesn't access any env vars

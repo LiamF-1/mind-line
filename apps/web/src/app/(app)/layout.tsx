@@ -1,6 +1,9 @@
 import { Header } from '@/components/ui/header'
 import { AppSidebar } from '@/components/app-sidebar'
 
+// Prevent Next.js 15 prerendering issues
+export const dynamic = 'force-dynamic'
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

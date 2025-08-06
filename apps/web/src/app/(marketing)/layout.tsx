@@ -1,5 +1,8 @@
 import { Header } from '@/components/ui/header'
 
+// Prevent Next.js 15 prerendering issues
+export const dynamic = 'force-dynamic'
+
 export default function MarketingLayout({
   children,
 }: {

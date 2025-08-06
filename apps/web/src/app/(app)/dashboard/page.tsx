@@ -1,5 +1,8 @@
 'use client'
 
+// Prevent Next.js 15 prerendering issues
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'

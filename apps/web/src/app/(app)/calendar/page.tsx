@@ -1,5 +1,8 @@
 'use client'
 
+// Prevent Next.js 15 prerendering issues
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { Calendar } from '@/components/calendar/calendar'
 import { EventFormModal } from '@/components/calendar/event-form-modal'

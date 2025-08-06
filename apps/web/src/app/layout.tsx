@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
+// Prevent Next.js 15 prerendering issues
+export const dynamic = 'force-dynamic'
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
