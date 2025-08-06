@@ -33,7 +33,12 @@ RUN pnpm prisma generate
 
 # Build the application
 WORKDIR /app
+# Set build-time environment variables for DigitalOcean App Platform
 ENV BUILD_STANDALONE=true
+ENV IS_BUILD=true
+ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXTAUTH_SECRET=build-time-secret-minimum-32-characters
+ENV NEXT_PUBLIC_APP_URL=http://localhost:3000
 RUN pnpm run build
 
 # Stage 3: Runner
