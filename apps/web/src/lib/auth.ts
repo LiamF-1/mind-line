@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from './db'
-import bcrypt from 'bcryptjs'
+import { verifyPassword } from './hash'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/login',
   },
   providers: [
     CredentialsProvider({
@@ -30,13 +30,13 @@ export const authOptions: NextAuthOptions = {
           },
         })
 
-        if (!user) {
+        if (!user || !user.passwordHash) {
           return null
         }
 
-        const isPasswordValid = await bcrypt.compare(
+        const isPasswordValid = await verifyPassword(
           credentials.password,
-          user.password || ''
+          user.passwordHash
         )
 
         if (!isPasswordValid) {
@@ -47,16 +47,23 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          image: user.image,
         }
       },
     }),
   ],
   callbacks: {
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
     session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: token.sub,
+        id: token.id as string,
       },
     }),
   },
