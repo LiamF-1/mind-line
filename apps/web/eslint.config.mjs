@@ -15,6 +15,8 @@ const eslintConfig = [
     rules: {
       // Disable the pages directory check since we're using App Router
       "@next/next/no-html-link-for-pages": "off",
+      // Disable the problematic rule that causes context.getAncestors error
+      "@next/next/no-duplicate-head": "off",
     },
   },
 ];
