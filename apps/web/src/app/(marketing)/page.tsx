@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-// Prevent Next.js 15 prerendering issues
+// Force dynamic rendering and disable static optimization completely
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 export default function LandingPage() {
   return (
