@@ -11,25 +11,15 @@ services:
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
-    env:
+    envs:
       - key: NODE_ENV
         value: production
       - key: POSTGRES_URL
-        value: ${mindline-db.DATABASE_URL}
+        value: ${POSTGRES_DATABASE_URL}
       - key: REDIS_URL
-        value: ${mindline-valkey.REDIS_URL}
+        value: ${REDIS_DATABASE_URL}
       - key: NEXTAUTH_URL
         value: ${APP_URL}
       - key: NEXTAUTH_SECRET
-        value: rSR4lUcn04P7QLhSip/CUzu4XzQKXoeeL8WVUn/KmmI=
-
-databases:
-  - name: mindline-db
-    engine: PG
-    version: '15'
-    size: basic
-
-  - name: mindline-valkey
-    engine: VALKEY
-    version: '7'
-    size: basic
+        value: ${NEXTAUTH_SECRET}
+# Using existing databases - no need to create new ones
