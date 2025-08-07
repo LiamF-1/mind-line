@@ -40,7 +40,6 @@ const navigation = [
     href: '/notes',
     icon: FileText,
     current: false,
-    comingSoon: true,
   },
   {
     name: 'Time Tracking',
@@ -111,7 +110,7 @@ export function AppSidebar() {
             {/* Workflow Boards Section */}
             <div className="mt-8">
               <div className="mb-3 flex items-center justify-between px-2">
-                <h3 className="text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Workflow Boards
                 </h3>
                 <Link href="/boards/new">

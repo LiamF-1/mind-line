@@ -1,2 +1,6 @@
 // Test setup file for Vitest
-// Add global test utilities here if needed
+import '@testing-library/jest-dom'
+import { vi } from 'vitest'
+
+// Make vi globally available
+global.vi = vi

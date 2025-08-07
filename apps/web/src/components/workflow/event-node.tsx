@@ -70,7 +70,7 @@ export function EventNode({ data, selected }: EventNodeProps) {
   return (
     <div
       className={cn(
-        'max-w-[320px] min-w-[220px] rounded-lg border-2 bg-white p-3 shadow-sm transition-all',
+        'min-w-[220px] max-w-[320px] rounded-lg border-2 bg-white p-3 shadow-sm transition-all',
         getStatusColors(),
         selected && 'shadow-lg ring-2 ring-blue-500 ring-offset-2'
       )}
@@ -92,7 +92,7 @@ export function EventNode({ data, selected }: EventNodeProps) {
             />
           </div>
 
-          <h3 className="line-clamp-2 text-sm leading-tight font-medium">
+          <h3 className="line-clamp-2 text-sm font-medium leading-tight">
             {event.title}
           </h3>
 

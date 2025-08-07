@@ -257,6 +257,194 @@ function MyCalendarComponent() {
 }
 ```
 
+## 📝 Notes Feature
+
+The Mindline Notes feature provides a powerful, Notion-style note-taking experience with rich text editing, full-text search, and version history.
+
+### Features
+
+- **Rich Text Editor**: Built with TipTap, supporting headings, lists, code blocks, task lists, and text formatting
+- **Auto-save**: Notes save automatically as you type with visual indicators
+- **Full-text Search**: PostgreSQL-powered search across note titles and content
+- **Tag Organization**: Organize notes with tags for easy categorization and filtering
+- **Version History**: Complete revision tracking with the ability to restore previous versions
+- **Mobile Responsive**: Optimized for both desktop and mobile editing experiences
+- **Keyboard Shortcuts**: Familiar shortcuts like Ctrl+S for manual save, / for slash commands
+
+### Notes API
+
+The notes system uses tRPC procedures for type-safe operations:
+
+```typescript
+// List notes with search and pagination
+const notes = api.note.list.useInfiniteQuery({
+  query: 'search term',
+  tag: 'work',
+  limit: 20,
+})
+
+// Get a single note with revision history
+const note = api.note.get.useQuery({ id: 'note-id' })
+
+// Create a new note
+const createNote = api.note.create.useMutation()
+await createNote.mutateAsync({
+  title: 'Meeting Notes',
+  content: {
+    type: 'doc',
+    content: [
+      {
+        type: 'heading',
+        attrs: { level: 1 },
+        content: [{ type: 'text', text: 'Project Planning' }],
+      },
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Discussion points...' }],
+      },
+    ],
+  },
+  tags: ['meetings', 'planning'],
+})
+
+// Update a note (automatically creates revision if content changed)
+const updateNote = api.note.update.useMutation()
+await updateNote.mutateAsync({
+  id: 'note-id',
+  data: {
+    title: 'Updated Title',
+    content: updatedContent,
+    tags: ['updated-tag'],
+  },
+})
+
+// Search notes using full-text search
+const searchResults = api.note.search.useQuery({
+  query: 'project planning',
+  limit: 10,
+})
+
+// Get all available tags
+const tags = api.note.getTags.useQuery()
+```
+
+### Note Schema
+
+```typescript
+interface Note {
+  id: string
+  title: string
+  content: JSON // TipTap JSON document
+  tags: string[] // Array of tag strings
+  createdAt: Date
+  updatedAt: Date
+  userId: string
+  revisions: NoteRevision[]
+}
+
+interface NoteRevision {
+  id: string
+  noteId: string
+  content: JSON // Snapshot of content at this revision
+  createdAt: Date
+}
+```
+
+### Editor Features
+
+#### Rich Text Formatting
+
+- **Bold**, _italic_, ~~strikethrough~~ text
+- `Inline code` and syntax-highlighted code blocks
+- Headings (H1, H2, H3)
+- Bullet lists and numbered lists
+- Task lists with checkboxes
+- Blockquotes
+- Text highlighting
+
+#### Keyboard Shortcuts
+
+- `Ctrl/Cmd + B` - Bold
+- `Ctrl/Cmd + I` - Italic
+- `Ctrl/Cmd + S` - Manual save
+- `Ctrl/Cmd + Z` - Undo
+- `Ctrl/Cmd + Y` - Redo
+- `/` - Open slash command menu (coming soon)
+
+### Seeding Demo Notes
+
+```bash
+# Seed the database with demo notes
+cd apps/web
+npx ts-node prisma/seed-notes.ts
+
+# Or run the full seed script
+pnpm prisma db seed
+```
+
+### Usage Examples
+
+#### Creating Notes Programmatically
+
+```typescript
+import { api } from '@/lib/trpc'
+
+// Create a note with rich content
+const note = await api.note.create.mutate({
+  title: 'Project Retrospective',
+  content: {
+    type: 'doc',
+    content: [
+      {
+        type: 'heading',
+        attrs: { level: 1 },
+        content: [{ type: 'text', text: 'Sprint Retrospective' }],
+      },
+      {
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [{ type: 'text', text: 'What went well?' }],
+      },
+      {
+        type: 'bulletList',
+        content: [
+          {
+            type: 'listItem',
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  { type: 'text', text: 'Team collaboration improved' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  tags: ['retrospective', 'team', 'sprint-1'],
+})
+```
+
+#### Full-text Search Implementation
+
+The notes feature includes PostgreSQL full-text search with ranking:
+
+```sql
+-- Automatic search index creation
+CREATE INDEX "note_search_idx"
+  ON "notes"
+  USING GIN (to_tsvector('simple', title || ' ' || content::text));
+
+-- Search query with ranking
+SELECT id, title, content, tags, "createdAt", "updatedAt"
+FROM notes
+WHERE "user_id" = $1
+  AND to_tsvector('simple', title || ' ' || content::text) @@ plainto_tsquery('simple', $2)
+ORDER BY ts_rank(to_tsvector('simple', title || ' ' || content::text), plainto_tsquery('simple', $2)) DESC;
+```
+
 ## 📝 Available Scripts
 
 ### Root Level Commands
@@ -302,7 +490,7 @@ The application includes a complete schema for productivity features:
 - **Users** - Authentication and user management (NextAuth.js compatible)
 - **Tasks** - Todo/task management with priorities and due dates
 - **CalendarEvents** - Calendar events with time ranges and colors
-- **Notes** - Rich text notes with tags and JSON content
+- **Notes** - Rich text notes with tags, revisions, and full-text search
 
 ### Key Features
 
@@ -338,7 +526,7 @@ End-to-end type-safe APIs with tRPC:
 api.user.*     // User management
 api.task.*     // Task operations
 api.event.*    // Calendar events
-api.note.*     // Note management
+api.note.*     // Notes with rich text editing and search
 ```
 
 ### Usage Examples

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { trpc } from '@/lib/trpc'
 import {
@@ -23,10 +24,12 @@ import {
   startOfDay,
   endOfDay,
   addDays,
+  formatDistanceToNow,
 } from 'date-fns'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   // Get current date range for today's events
   const today = new Date()
@@ -49,6 +52,19 @@ export default function DashboardPage() {
   // Get task counts
   const { data: taskCounts } = trpc.task.getCounts.useQuery()
 
+  // Get recent notes
+  const { data: recentNotesData } = trpc.note.list.useQuery({
+    limit: 5,
+  })
+  const recentNotes = recentNotesData?.notes || []
+
+  // Create note mutation
+  const createNoteMutation = trpc.note.create.useMutation({
+    onSuccess: (note) => {
+      router.push(`/notes/${note.id}`)
+    },
+  })
+
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Good morning'
@@ -65,6 +81,32 @@ export default function DashboardPage() {
     if (isToday(date)) return 'Today'
     if (isTomorrow(date)) return 'Tomorrow'
     return format(date, 'MMM d')
+  }
+
+  const extractTextFromContent = (content: any): string => {
+    if (!content || !content.content) return ''
+
+    const extractText = (node: any): string => {
+      if (node.type === 'text') return node.text || ''
+      if (node.content) {
+        return node.content.map(extractText).join('')
+      }
+      return ''
+    }
+
+    return content.content.map(extractText).join(' ').slice(0, 100)
+  }
+
+  const handleCreateNote = async () => {
+    try {
+      await createNoteMutation.mutateAsync({
+        title: 'Untitled Note',
+        content: { type: 'doc', content: [{ type: 'paragraph' }] },
+        tags: [],
+      })
+    } catch (error) {
+      console.error('Failed to create note:', error)
+    }
   }
 
   return (
@@ -217,6 +259,14 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
+              <Button
+                className="w-full justify-start gap-2"
+                onClick={handleCreateNote}
+                disabled={createNoteMutation.isPending}
+              >
+                <FileText className="h-4 w-4" />
+                {createNoteMutation.isPending ? 'Creating...' : 'New Note'}
+              </Button>
               <Link href="/calendar">
                 <Button
                   variant="outline"
@@ -235,17 +285,6 @@ export default function DashboardPage() {
                   Add Task
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2"
-                disabled
-              >
-                <FileText className="h-4 w-4" />
-                New Note
-                <span className="text-muted-foreground ml-auto text-xs">
-                  Soon
-                </span>
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -377,6 +416,70 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           )}
+
+        {/* Recent Notes */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Recent Notes
+              </CardTitle>
+              <Link href="/notes">
+                <Button variant="ghost" size="sm" className="gap-1">
+                  View All
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentNotes.length > 0 ? (
+              <div className="space-y-3">
+                {recentNotes.slice(0, 3).map((note: any) => (
+                  <Link key={note.id} href={`/notes/${note.id}`}>
+                    <div className="bg-card hover:bg-muted/50 flex items-start gap-3 rounded-lg border p-3 transition-colors">
+                      <div className="mt-1">
+                        <FileText className="text-muted-foreground h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {note.title}
+                        </p>
+                        <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                          {extractTextFromContent(note.content) || 'No content'}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          {formatDistanceToNow(new Date(note.updatedAt), {
+                            addSuffix: true,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center">
+                <FileText className="text-muted-foreground mx-auto mb-2 h-12 w-12" />
+                <p className="text-muted-foreground mb-2">No notes yet</p>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Start capturing your thoughts and ideas
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleCreateNote}
+                  disabled={createNoteMutation.isPending}
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Your First Note
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

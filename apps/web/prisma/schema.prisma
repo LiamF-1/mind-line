@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,45 +7,40 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 
-// User model for authentication and user management
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String          @id @default(cuid())
+  email         String          @unique
   name          String?
-  passwordHash  String    // Hashed password for credentials provider
   emailVerified DateTime?
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  passwordHash  String
   accounts      Account[]
-  sessions      Session[]
-  tasks         Task[]
+  boards        Board[]
   events        CalendarEvent[]
   notes         Note[]
-  boards        Board[]
+  sessions      Session[]
+  tasks         Task[]
 
   @@index([email])
   @@map("users")
 }
 
-// NextAuth.js required models
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -73,24 +65,21 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
-// Application models
 model Task {
-  id               String    @id @default(cuid())
-  title            String
-  description      String?
-  dueDate          DateTime?
-  priority         Priority  @default(MEDIUM)
-  status           TaskStatus @default(ACTIVE)
-  label            String?   // Color label
-  order            Float     @default(0) // For reordering
-  calendarEventId  String?   @map("calendar_event_id")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  // Relations
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  calendarEvent CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  priority        Priority       @default(MEDIUM)
+  dueDate         DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  userId          String         @map("user_id")
+  calendarEventId String?        @map("calendar_event_id")
+  label           String?
+  order           Float          @default(0)
+  status          TaskStatus     @default(ACTIVE)
+  calendarEvent   CalendarEvent? @relation(fields: [calendarEventId], references: [id])
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -105,93 +94,89 @@ model CalendarEvent {
   endsAt      DateTime @map("ends_at")
   allDay      Boolean  @default(false)
   color       String?  @default("#3b82f6")
-  location    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relations
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks  Task[]
+  userId      String   @map("user_id")
+  location    String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
 
   @@map("calendar_events")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Note {
-  id        String   @id @default(cuid())
-  title     String?
-  content   Json     // Rich text content
-  tags      String[] @default([])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String         @id @default(cuid())
+  title     String
+  content   Json
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  userId    String         @map("user_id")
+  tags      Json           @default("[]")
+  revisions NoteRevision[]
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notes")
 }
 
-// Workflow Boards models
+model NoteRevision {
+  id        String   @id @default(cuid())
+  noteId    String   @map("note_id")
+  content   Json
+  createdAt DateTime @default(now())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@map("note_revisions")
+}
+
 model Board {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String?
   deadline    DateTime?
-  theme       String?  @default("#3b82f6")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items  BoardItem[]
-  edges  BoardEdge[]
+  theme       String?     @default("#3b82f6")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String      @map("user_id")
+  edges       BoardEdge[]
+  items       BoardItem[]
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("boards")
 }
 
 model BoardItem {
-  id           String         @id @default(cuid())
-  externalId   String         @map("external_id") // ID of the task or event
-  externalType ExternalType   @map("external_type") // 'task' or 'event'
-  xPos         Float          @map("x_pos") // X position on canvas
-  yPos         Float          @map("y_pos") // Y position on canvas
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  // Relations
-  boardId String @map("board_id")
-  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  
-  // Edges where this item is the source or target
-  sourceEdges BoardEdge[] @relation("SourceItem")
-  targetEdges BoardEdge[] @relation("TargetItem")
+  id           String       @id @default(cuid())
+  externalId   String       @map("external_id")
+  externalType ExternalType @map("external_type")
+  xPos         Float        @map("x_pos")
+  yPos         Float        @map("y_pos")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  boardId      String       @map("board_id")
+  sourceEdges  BoardEdge[]  @relation("SourceItem")
+  targetEdges  BoardEdge[]  @relation("TargetItem")
+  board        Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
   @@unique([boardId, externalId, externalType])
   @@map("board_items")
 }
 
 model BoardEdge {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  boardId  String @map("board_id")
-  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  
-  sourceId String    @map("source_id")
-  source   BoardItem @relation("SourceItem", fields: [sourceId], references: [id], onDelete: Cascade)
-  
-  targetId String    @map("target_id")
-  target   BoardItem @relation("TargetItem", fields: [targetId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  boardId   String    @map("board_id")
+  sourceId  String    @map("source_id")
+  targetId  String    @map("target_id")
+  board     Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  source    BoardItem @relation("SourceItem", fields: [sourceId], references: [id], onDelete: Cascade)
+  target    BoardItem @relation("TargetItem", fields: [targetId], references: [id], onDelete: Cascade)
 
   @@unique([sourceId, targetId])
   @@map("board_edges")
 }
 
-// Enums
 enum Priority {
   LOW
   MEDIUM
