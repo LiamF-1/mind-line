@@ -3,18 +3,17 @@ services:
   - name: web
     source_dir: /
     github:
-      repo: LiamF-1/mind-line # Replace with your actual GitHub repo
+      repo: LiamF-1/mind-line
       branch: main
       deploy_on_push: true
-    dockerfile_path: Dockerfile
+    build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
+    run_command: pnpm start
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
     env:
       - key: NODE_ENV
         value: production
-      - key: BUILD_STANDALONE
-        value: 'true'
       - key: POSTGRES_URL
         value: ${mindline-db.DATABASE_URL}
       - key: REDIS_URL

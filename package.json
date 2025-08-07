@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "Scalable full-stack productivity suite with Next.js 15, tRPC, and PostgreSQL",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm db:generate && pnpm -r build",
