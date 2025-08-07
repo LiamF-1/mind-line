@@ -98,7 +98,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="space-y-4 sm:flex sm:justify-center sm:space-y-0 sm:space-x-4">
+          <div className="space-y-4 sm:flex sm:justify-center sm:space-x-4 sm:space-y-0">
             <Link
               href="/login"
               className="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-8 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-blue-700 sm:w-auto"

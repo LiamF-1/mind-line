@@ -94,8 +94,8 @@ export default function TasksPage() {
       if (previousTasks) {
         utils.task.list.setData(
           { status: activeTab },
-          (old) =>
-            old?.map((task) =>
+          (old: any) =>
+            old?.map((task: any) =>
               task.id === id
                 ? {
                     ...task,
@@ -164,7 +164,7 @@ export default function TasksPage() {
 
   // Filter tasks based on search query
   const filteredTasks = tasks.filter(
-    (task) =>
+    (task: any) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (task.description &&
         task.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -214,7 +214,7 @@ export default function TasksPage() {
     if (selectedTasks.length === filteredTasks.length) {
       setSelectedTasks([])
     } else {
-      setSelectedTasks(filteredTasks.map((task) => task.id))
+      setSelectedTasks(filteredTasks.map((task: any) => task.id))
     }
   }, [selectedTasks.length, filteredTasks])
 
@@ -314,7 +314,7 @@ export default function TasksPage() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search tasks..."
                 value={searchQuery}
@@ -421,7 +421,7 @@ export default function TasksPage() {
             />
           ) : (
             <div className="space-y-3">
-              {filteredTasks.map((task) => (
+              {filteredTasks.map((task: any) => (
                 <TaskCard
                   key={task.id}
                   task={task}

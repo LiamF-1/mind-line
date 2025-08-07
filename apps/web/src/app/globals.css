@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -119,4 +119,115 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* TipTap Editor Styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Task List Styles */
+.task-list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.25rem 0;
+}
+
+.task-item > label {
+  margin-right: 0.5rem;
+  user-select: none;
+  cursor: pointer;
+}
+
+.task-item > div {
+  flex: 1;
+}
+
+/* Code Block Styles */
+.code-block {
+  background-color: hsl(var(--muted));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-family:
+    'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  overflow-x: auto;
+}
+
+.dark .code-block {
+  background-color: hsl(var(--muted));
+}
+
+/* Highlight Styles */
+.highlight {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.dark .highlight {
+  background-color: #fbbf24;
+  color: #1f2937;
+}
+
+/* Prose Styles for Editor */
+.prose {
+  max-width: none;
+}
+
+.prose h1 {
+  @apply mb-4 mt-8 text-3xl font-bold;
+}
+
+.prose h2 {
+  @apply mb-3 mt-6 text-2xl font-bold;
+}
+
+.prose h3 {
+  @apply mb-2 mt-4 text-xl font-bold;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-1;
+}
+
+.prose blockquote {
+  @apply border-muted-foreground text-muted-foreground border-l-4 pl-4 italic;
+}
+
+.prose code {
+  @apply bg-muted rounded px-1 py-0.5 text-sm;
+}
+
+.prose pre {
+  @apply bg-muted overflow-x-auto rounded-lg p-4;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
 }

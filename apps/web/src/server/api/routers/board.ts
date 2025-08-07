@@ -79,12 +79,12 @@ export const boardRouter = createTRPCRouter({
 
       // Fetch actual task and event data for board items
       const taskIds = board.items
-        .filter((item) => item.externalType === 'TASK')
-        .map((item) => item.externalId)
+        .filter((item: any) => item.externalType === 'TASK')
+        .map((item: any) => item.externalId)
 
       const eventIds = board.items
-        .filter((item) => item.externalType === 'EVENT')
-        .map((item) => item.externalId)
+        .filter((item: any) => item.externalType === 'EVENT')
+        .map((item: any) => item.externalId)
 
       const [tasks, events] = await Promise.all([
         taskIds.length > 0
@@ -106,11 +106,11 @@ export const boardRouter = createTRPCRouter({
       ])
 
       // Create lookup maps
-      const taskMap = new Map(tasks.map((task) => [task.id, task]))
-      const eventMap = new Map(events.map((event) => [event.id, event]))
+      const taskMap = new Map(tasks.map((task: any) => [task.id, task]))
+      const eventMap = new Map(events.map((event: any) => [event.id, event]))
 
       // Enhance board items with actual data
-      const enhancedItems = board.items.map((item) => ({
+      const enhancedItems = board.items.map((item: any) => ({
         ...item,
         data:
           item.externalType === 'TASK'
@@ -394,12 +394,12 @@ export const boardRouter = createTRPCRouter({
 
       // Get task and event data to calculate progress
       const taskIds = board.items
-        .filter((item) => item.externalType === 'TASK')
-        .map((item) => item.externalId)
+        .filter((item: any) => item.externalType === 'TASK')
+        .map((item: any) => item.externalId)
 
       const eventIds = board.items
-        .filter((item) => item.externalType === 'EVENT')
-        .map((item) => item.externalId)
+        .filter((item: any) => item.externalType === 'EVENT')
+        .map((item: any) => item.externalId)
 
       const [tasks, events] = await Promise.all([
         taskIds.length > 0
@@ -426,22 +426,22 @@ export const boardRouter = createTRPCRouter({
 
       // Calculate completion stats
       const completedTasks = tasks.filter(
-        (task) => task.status === 'COMPLETED'
+        (task: any) => task.status === 'COMPLETED'
       ).length
       const completedEvents = events.filter(
-        (event) => event.endsAt < now
+        (event: any) => event.endsAt < now
       ).length
       const totalItems = board.items.length
       const completedItems = completedTasks + completedEvents
 
       // Calculate status counts
       const overdueTasks = tasks.filter(
-        (task) =>
+        (task: any) =>
           task.status === 'ACTIVE' && task.dueDate && task.dueDate < today
       ).length
 
       const dueTodayTasks = tasks.filter(
-        (task) =>
+        (task: any) =>
           task.status === 'ACTIVE' &&
           task.dueDate &&
           task.dueDate >= today &&
@@ -449,7 +449,7 @@ export const boardRouter = createTRPCRouter({
       ).length
 
       const upcomingEvents = events.filter(
-        (event) => event.startsAt > now && event.startsAt <= tomorrow
+        (event: any) => event.startsAt > now && event.startsAt <= tomorrow
       ).length
 
       return {

@@ -66,7 +66,7 @@ export function TaskNode({ data, selected }: TaskNodeProps) {
   return (
     <div
       className={cn(
-        'max-w-[300px] min-w-[200px] rounded-lg border-2 bg-white p-3 shadow-sm transition-all',
+        'min-w-[200px] max-w-[300px] rounded-lg border-2 bg-white p-3 shadow-sm transition-all',
         getStatusColors(),
         selected && 'shadow-lg ring-2 ring-blue-500 ring-offset-2'
       )}
@@ -85,7 +85,7 @@ export function TaskNode({ data, selected }: TaskNodeProps) {
             <div className={cn('h-2 w-2 rounded-full', getPriorityColors())} />
           </div>
 
-          <h3 className="line-clamp-2 text-sm leading-tight font-medium">
+          <h3 className="line-clamp-2 text-sm font-medium leading-tight">
             {task.title}
           </h3>
 

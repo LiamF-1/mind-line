@@ -125,7 +125,7 @@ export default function BoardsPage() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
           <Input
             placeholder="Search boards..."
             value={searchQuery}
@@ -161,7 +161,7 @@ export default function BoardsPage() {
                     <MoreVertical className="h-4 w-4" />
                   </Button>
 
-                  <div className="absolute top-full right-0 z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                     <Link href={`/boards/${board.id}/edit`}>
                       <button className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-50">
                         <Edit3 className="h-4 w-4" />

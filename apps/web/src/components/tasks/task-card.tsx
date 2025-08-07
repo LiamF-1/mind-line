@@ -148,7 +148,7 @@ export function TaskCard({
   return (
     <div
       className={cn(
-        'group relative flex items-start gap-3 rounded-lg border p-4 transition-all hover:shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none',
+        'group relative flex items-start gap-3 rounded-lg border p-4 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
         'bg-white dark:bg-gray-800',
         selected && 'ring-2 ring-blue-500',
         isCompleted && 'opacity-60'

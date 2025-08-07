@@ -19,5 +19,6 @@ module.exports = {
     '*.config.js',
     '*.config.ts',
     '*.config.mjs',
+    '**/prisma/**',
   ],
 }
