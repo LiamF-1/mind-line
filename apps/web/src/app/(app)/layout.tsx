@@ -1,5 +1,6 @@
 import { Header } from '@/components/ui/header'
 import { AppSidebar } from '@/components/app-sidebar'
+import { Toaster } from 'sonner'
 
 // Prevent Next.js 15 prerendering issues
 export const dynamic = 'force-dynamic'
@@ -16,6 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      <Toaster richColors position="bottom-right" />
     </div>
   )
 }
