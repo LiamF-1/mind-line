@@ -10,7 +10,11 @@ import {
   FileText,
   Clock,
   Settings,
+  GitBranch,
+  Plus,
 } from 'lucide-react'
+import { trpc } from '@/lib/trpc'
+import { Button } from '@/components/ui/button'
 
 const navigation = [
   {
@@ -56,6 +60,7 @@ const navigation = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { data: boards } = trpc.board.list.useQuery()
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-shrink-0 md:flex-col">
@@ -102,6 +107,78 @@ export function AppSidebar() {
                 </Link>
               )
             })}
+
+            {/* Workflow Boards Section */}
+            <div className="mt-8">
+              <div className="mb-3 flex items-center justify-between px-2">
+                <h3 className="text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  Workflow Boards
+                </h3>
+                <Link href="/boards/new">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="space-y-1">
+                {boards?.map((board: any) => {
+                  const isBoardActive = pathname.startsWith(
+                    `/boards/${board.id}`
+                  )
+                  return (
+                    <Link
+                      key={board.id}
+                      href={`/boards/${board.id}`}
+                      className={cn(
+                        'group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors',
+                        isBoardActive
+                          ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+                      )}
+                    >
+                      <GitBranch
+                        className={cn(
+                          'mr-3 h-4 w-4 flex-shrink-0',
+                          isBoardActive
+                            ? 'text-blue-500 dark:text-blue-400'
+                            : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300'
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span className="flex-1 truncate">{board.name}</span>
+                      {board.deadline && (
+                        <div
+                          className="ml-2 h-2 w-2 rounded-full"
+                          style={{ backgroundColor: board.theme || '#3b82f6' }}
+                        />
+                      )}
+                    </Link>
+                  )
+                })}
+
+                {(!boards || boards.length === 0) && (
+                  <div className="px-2 py-4 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      No boards yet
+                    </p>
+                    <Link href="/boards/new">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Create your first board
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
           </nav>
         </div>
       </div>
