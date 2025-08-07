@@ -74,19 +74,25 @@ model VerificationToken {
 
 // Application models
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  completed   Boolean  @default(false)
-  priority    Priority @default(MEDIUM)
-  dueDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String    @id @default(cuid())
+  title            String
+  description      String?
+  dueDate          DateTime?
+  priority         Priority  @default(MEDIUM)
+  status           TaskStatus @default(ACTIVE)
+  label            String?   // Color label
+  order            Float     @default(0) // For reordering
+  calendarEventId  String?   @map("calendar_event_id")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Relations
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarEvent CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
 
+  @@index([userId, status])
+  @@index([userId, dueDate])
   @@map("tasks")
 }
 
@@ -105,6 +111,7 @@ model CalendarEvent {
   // Relations
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
 
   @@map("calendar_events")
 }
@@ -130,4 +137,10 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum TaskStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
 }

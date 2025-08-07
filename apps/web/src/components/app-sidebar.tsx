@@ -30,7 +30,6 @@ const navigation = [
     href: '/tasks',
     icon: CheckSquare,
     current: false,
-    comingSoon: true,
   },
   {
     name: 'Notes',
