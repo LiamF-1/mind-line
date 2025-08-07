@@ -1,10 +1,33 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 
 // Force dynamic rendering and disable static optimization completely
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
+
+// Simple button component to avoid any UI library issues
+function SimpleButton({
+  href,
+  children,
+  variant = 'primary',
+}: {
+  href: string
+  children: React.ReactNode
+  variant?: 'primary' | 'secondary'
+}) {
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
+  const variantClasses =
+    variant === 'primary'
+      ? 'bg-blue-600 text-white hover:bg-blue-700'
+      : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+
+  return (
+    <Link href={href} className={`${baseClasses} ${variantClasses}`}>
+      {children}
+    </Link>
+  )
+}
 
 export default function LandingPage() {
   return (
@@ -24,18 +47,10 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button size="lg" asChild>
-              <Link href="/register">Get Started</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View on GitHub
-              </Link>
-            </Button>
+            <SimpleButton href="/register">Get Started</SimpleButton>
+            <SimpleButton href="https://github.com" variant="secondary">
+              View on GitHub
+            </SimpleButton>
           </div>
 
           <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">

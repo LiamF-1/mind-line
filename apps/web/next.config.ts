@@ -12,14 +12,11 @@ const nextConfig: NextConfig = {
   // Fix for Next.js 15 not-found page prerendering issue
   // https://github.com/vercel/next.js/issues/65447
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-  // Aggressive fix for Next.js 15 clientReferenceManifest bug
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
-    esmExternals: 'loose',
-  },
-  // Disable static optimization to prevent manifest issues
-  trailingSlash: false,
-  // Force all pages to be dynamic
+  // NUCLEAR FIX: Force standalone mode to bypass clientReferenceManifest
+  output: 'standalone',
+  // Disable problematic optimizations
+  swcMinify: true,
+  // Force all pages to be dynamic to prevent manifest issues
   async headers() {
     return [
       {
