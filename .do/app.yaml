@@ -1,0 +1,36 @@
+name: mindline
+services:
+  - name: web
+    source_dir: /
+    github:
+      repo: LiamF-1/mind-line # Replace with your actual GitHub repo
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: BUILD_STANDALONE
+        value: 'true'
+      - key: POSTGRES_URL
+        value: ${mindline-db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${mindline-valkey.REDIS_URL}
+      - key: NEXTAUTH_URL
+        value: ${APP_URL}
+      - key: NEXTAUTH_SECRET
+        value: rSR4lUcn04P7QLhSip/CUzu4XzQKXoeeL8WVUn/KmmI=
+
+databases:
+  - name: mindline-db
+    engine: PG
+    version: '15'
+    size: basic
+
+  - name: mindline-valkey
+    engine: VALKEY
+    version: '7'
+    size: basic
