@@ -27,6 +27,7 @@ model User {
   tasks         Task[]
   events        CalendarEvent[]
   notes         Note[]
+  boards        Board[]
 
   @@index([email])
   @@map("users")
@@ -131,6 +132,65 @@ model Note {
   @@map("notes")
 }
 
+// Workflow Boards models
+model Board {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  deadline    DateTime?
+  theme       String?  @default("#3b82f6")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  BoardItem[]
+  edges  BoardEdge[]
+
+  @@map("boards")
+}
+
+model BoardItem {
+  id           String         @id @default(cuid())
+  externalId   String         @map("external_id") // ID of the task or event
+  externalType ExternalType   @map("external_type") // 'task' or 'event'
+  xPos         Float          @map("x_pos") // X position on canvas
+  yPos         Float          @map("y_pos") // Y position on canvas
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relations
+  boardId String @map("board_id")
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  // Edges where this item is the source or target
+  sourceEdges BoardEdge[] @relation("SourceItem")
+  targetEdges BoardEdge[] @relation("TargetItem")
+
+  @@unique([boardId, externalId, externalType])
+  @@map("board_items")
+}
+
+model BoardEdge {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  boardId  String @map("board_id")
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  sourceId String    @map("source_id")
+  source   BoardItem @relation("SourceItem", fields: [sourceId], references: [id], onDelete: Cascade)
+  
+  targetId String    @map("target_id")
+  target   BoardItem @relation("TargetItem", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId])
+  @@map("board_edges")
+}
+
 // Enums
 enum Priority {
   LOW
@@ -143,4 +203,9 @@ enum TaskStatus {
   ACTIVE
   COMPLETED
   ARCHIVED
+}
+
+enum ExternalType {
+  TASK
+  EVENT
 }

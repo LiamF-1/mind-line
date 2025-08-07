@@ -17,6 +17,14 @@ const eventInput = z
   })
 
 export const eventRouter = createTRPCRouter({
+  // Alias for consistency with task router
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.calendarEvent.findMany({
+      where: { userId: ctx.session.user.id },
+      orderBy: { startsAt: 'asc' },
+    })
+  }),
+
   getAll: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.calendarEvent.findMany({
       where: { userId: ctx.session.user.id },
