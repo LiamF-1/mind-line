@@ -3,7 +3,7 @@ services:
   - name: web
     source_dir: /
     github:
-      repo: your-username/mind-line # Replace with your actual GitHub repo
+      repo: LiamF-1/mind-line # Replace with your actual GitHub repo
       branch: main
       deploy_on_push: true
     build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
@@ -23,7 +23,7 @@ services:
       - key: NEXTAUTH_URL
         value: ${APP_URL}
       - key: NEXTAUTH_SECRET
-        value: change-this-to-a-32-character-secret-key-for-production
+        value: rSR4lUcn04P7QLhSip/CUzu4XzQKXoeeL8WVUn/KmmI=
 
 databases:
   - name: mindline-db
