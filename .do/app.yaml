@@ -16,8 +16,7 @@ services:
         value: production
       - key: POSTGRES_URL
         value: ${mindline_db.DATABASE_URL}
-      - key: REDIS_URL
-        value: ${mindline_redis.DATABASE_URL}
+
       - key: NEXTAUTH_URL
         value: ${APP_URL}
       - key: NEXTAUTH_SECRET
@@ -29,10 +28,5 @@ databases:
   - name: mindline-db
     engine: PG
     version: '15'
-    production: false
+    production: true
     cluster_name: mindline-db-cluster
-
-  - name: mindline-redis
-    engine: REDIS
-    version: '7'
-    production: false
