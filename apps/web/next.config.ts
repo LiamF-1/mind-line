@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   },
   // Fix for Next.js 15 not-found page prerendering issue
   // https://github.com/vercel/next.js/issues/65447
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  // pageExtensions: ['tsx', 'ts', 'jsx', 'js'], // Temporarily commented out to test routing collision fix
 }
 
 export default nextConfig
