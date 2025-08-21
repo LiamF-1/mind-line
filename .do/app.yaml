@@ -11,11 +11,12 @@ services:
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
+    environment_slug: node-js
     envs:
       - key: NODE_ENV
         value: production
       - key: POSTGRES_URL
-        value: ${mindline_db.DATABASE_URL}
+        value: ${mindline-db.DATABASE_URL}
 
       - key: NEXTAUTH_URL
         value: ${APP_URL}

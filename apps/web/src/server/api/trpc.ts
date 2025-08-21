@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth/next'
 import { type Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { getRedis } from '@/lib/redis'
+
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 
@@ -27,7 +27,6 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
     session: opts.session,
     req: opts.req,
     prisma,
-    redis: getRedis(),
   }
 }
 
@@ -94,7 +93,6 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
       // infers the `session` as non-nullable
       session: ctx.session as Session & { user: NonNullable<Session['user']> },
       prisma: ctx.prisma,
-      redis: ctx.redis,
       req: ctx.req,
     },
   })

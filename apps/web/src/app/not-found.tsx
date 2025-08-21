@@ -1,15 +1,9 @@
 import Link from 'next/link'
 
-// Fix for Next.js 15 not-found page prerendering issue
-// Function name must be 'NotFound' (not 'NotFoundPage')
-// This page must be completely static - no server-side code or env vars
-// https://github.com/vercel/next.js/issues/65447
-
-// Prevent prerendering issues with Next.js 15 not-found page
-export const dynamic = 'force-dynamic' // Keep route dynamic (fastest escape hatch)
+// Proper not-found page for Next.js 15 App Router
+// Must NOT include html/body tags - those come from root layout
 
 export default function NotFound() {
-  // Ensure this page is completely static and doesn't access any env vars
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="mx-auto max-w-md text-center">

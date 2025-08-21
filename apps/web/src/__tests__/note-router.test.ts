@@ -35,7 +35,6 @@ const mockContext = {
   session: mockSession,
   req: undefined,
   prisma: mockPrisma as any,
-  redis: null,
 }
 
 describe('Note Router', () => {
