@@ -6,7 +6,7 @@ services:
       repo: LiamF-1/mind-line
       branch: deployment-setup
       deploy_on_push: true
-    build_command: pnpm install --frozen-lockfile && pnpm --filter mindline-web exec prisma generate --schema=./apps/web/prisma/schema.prisma && pnpm build
+    build_command: pnpm install --frozen-lockfile && pnpm --filter mindline-web exec prisma migrate deploy && pnpm db:generate && pnpm build
     run_command: pnpm start
     http_port: 3000
     instance_count: 1
@@ -16,7 +16,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: POSTGRES_URL
-        value: ${mindline_db.DATABASE_URL}
+        value: ${mindline-db.DATABASE_URL}
 
       - key: NEXTAUTH_URL
         value: ${APP_URL}
@@ -29,4 +29,4 @@ databases:
   - name: mindline-db
     engine: PG
     version: '15'
-    production: false
+    production: true
