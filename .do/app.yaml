@@ -1,4 +1,15 @@
 name: mindline
+jobs:
+  - name: db-migrate
+    source_dir: /
+    github:
+      repo: LiamF-1/mind-line
+      branch: deployment-setup
+    run_command: pnpm --filter mindline-web exec prisma migrate deploy
+    environment_slug: node-js
+    envs:
+      - key: POSTGRES_URL
+        value: ${mindline-db.DATABASE_URL}
 services:
   - name: web
     source_dir: /
@@ -6,7 +17,7 @@ services:
       repo: LiamF-1/mind-line
       branch: deployment-setup
       deploy_on_push: true
-    build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm --filter mindline-web exec prisma migrate deploy && pnpm build
+    build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
     run_command: pnpm start
     http_port: 3000
     instance_count: 1
