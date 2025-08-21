@@ -11,6 +11,7 @@ services:
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
+    environment_slug: node-js
     envs:
       - key: NODE_ENV
         value: production
