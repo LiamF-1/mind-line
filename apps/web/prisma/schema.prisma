@@ -194,15 +194,21 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+
+  @@schema("mindline")
 }
 
 enum TaskStatus {
   ACTIVE
   COMPLETED
   ARCHIVED
+
+  @@schema("mindline")
 }
 
 enum ExternalType {
   TASK
   EVENT
+
+  @@schema("mindline")
 }
