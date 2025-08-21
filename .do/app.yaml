@@ -7,7 +7,7 @@ services:
       branch: deployment-setup
       deploy_on_push: true
     build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
-    run_command: pnpm --filter mindline-web exec prisma migrate deploy && pnpm start
+    run_command: pnpm start
     http_port: 3000
     instance_count: 1
     instance_size_slug: basic-xxs
