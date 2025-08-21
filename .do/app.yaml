@@ -1,15 +1,4 @@
 name: mindline
-jobs:
-  - name: db-migrate
-    source_dir: /
-    github:
-      repo: LiamF-1/mind-line
-      branch: deployment-setup
-    run_command: pnpm --filter mindline-web exec prisma migrate deploy
-    environment_slug: node-js
-    envs:
-      - key: POSTGRES_URL
-        value: ${mindline-db.DATABASE_URL}
 services:
   - name: web
     source_dir: /
