@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getRedis } from '@/lib/redis'
 
 export async function GET(request: NextRequest) {
   const checks = {
     database: false,
-    redis: false,
     timestamp: new Date().toISOString(),
   }
 
@@ -17,20 +15,7 @@ export async function GET(request: NextRequest) {
     console.error('Database health check failed:', error)
   }
 
-  try {
-    // Check Redis connection (optional)
-    const redis = getRedis()
-    if (redis) {
-      await redis.ping()
-      checks.redis = true
-    } else {
-      checks.redis = true // Redis is optional, so we consider it healthy if not configured
-    }
-  } catch (error) {
-    console.error('Redis health check failed:', error)
-  }
-
-  const isHealthy = checks.database && checks.redis
+  const isHealthy = checks.database
   const status = isHealthy ? 200 : 503
 
   return NextResponse.json(
