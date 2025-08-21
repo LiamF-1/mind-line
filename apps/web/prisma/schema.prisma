@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
+  schemas  = ["mindline"]
 }
 
 model User {
@@ -25,6 +26,7 @@ model User {
 
   @@index([email])
   @@map("users")
+  @@schema("mindline")
 }
 
 model Account {
@@ -44,6 +46,7 @@ model Account {
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
+  @@schema("mindline")
 }
 
 model Session {
@@ -54,6 +57,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+  @@schema("mindline")
 }
 
 model VerificationToken {
@@ -63,6 +67,7 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+  @@schema("mindline")
 }
 
 model Task {
@@ -84,6 +89,7 @@ model Task {
   @@index([userId, status])
   @@index([userId, dueDate])
   @@map("tasks")
+  @@schema("mindline")
 }
 
 model CalendarEvent {
@@ -102,6 +108,7 @@ model CalendarEvent {
   tasks       Task[]
 
   @@map("calendar_events")
+  @@schema("mindline")
 }
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
@@ -117,6 +124,7 @@ model Note {
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notes")
+  @@schema("mindline")
 }
 
 model NoteRevision {
@@ -127,6 +135,7 @@ model NoteRevision {
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
   @@map("note_revisions")
+  @@schema("mindline")
 }
 
 model Board {
@@ -143,6 +152,7 @@ model Board {
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("boards")
+  @@schema("mindline")
 }
 
 model BoardItem {
@@ -160,6 +170,7 @@ model BoardItem {
 
   @@unique([boardId, externalId, externalType])
   @@map("board_items")
+  @@schema("mindline")
 }
 
 model BoardEdge {
@@ -175,6 +186,7 @@ model BoardEdge {
 
   @@unique([sourceId, targetId])
   @@map("board_edges")
+  @@schema("mindline")
 }
 
 enum Priority {

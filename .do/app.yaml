@@ -6,7 +6,7 @@ services:
       repo: LiamF-1/mind-line
       branch: deployment-setup
       deploy_on_push: true
-    build_command: pnpm install --frozen-lockfile && pnpm --filter mindline-web exec prisma migrate deploy --schema=./prisma/schema.prisma && pnpm db:generate && pnpm build
+    build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
     run_command: pnpm start
     http_port: 3000
     instance_count: 1
