@@ -14,8 +14,6 @@ const nextConfig: NextConfig = {
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   // NUCLEAR FIX: Force standalone mode to bypass clientReferenceManifest
   output: 'standalone',
-  // Disable problematic optimizations
-  swcMinify: true,
   // Force all pages to be dynamic to prevent manifest issues
   async headers() {
     return [
