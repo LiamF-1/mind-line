@@ -4,7 +4,7 @@ services:
     source_dir: /
     github:
       repo: LiamF-1/mind-line
-      branch: main
+      branch: deployment-setup
       deploy_on_push: true
     build_command: pnpm install --frozen-lockfile && pnpm db:generate && pnpm build
     run_command: pnpm start
@@ -15,11 +15,24 @@ services:
       - key: NODE_ENV
         value: production
       - key: POSTGRES_URL
-        value: ${POSTGRES_DATABASE_URL}
+        value: ${mindline_db.DATABASE_URL}
       - key: REDIS_URL
-        value: ${REDIS_DATABASE_URL}
+        value: ${mindline_redis.DATABASE_URL}
       - key: NEXTAUTH_URL
         value: ${APP_URL}
       - key: NEXTAUTH_SECRET
         value: ${NEXTAUTH_SECRET}
-# Using existing databases - no need to create new ones
+      - key: NEXT_PUBLIC_APP_URL
+        value: ${APP_URL}
+
+databases:
+  - name: mindline-db
+    engine: PG
+    version: '15'
+    production: false
+    cluster_name: mindline-db-cluster
+
+  - name: mindline-redis
+    engine: REDIS
+    version: '7'
+    production: false
