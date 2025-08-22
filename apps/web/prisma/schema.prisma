@@ -24,6 +24,10 @@ model User {
   notes         Note[]
   sessions      Session[]
   tasks         Task[]
+  timeEntries   TimeEntry[]
+  pomodoroRuns  PomodoroRun[]
+  pomodoroPreference PomodoroPreference?
+  distractionPreference DistractionPreference?
 
   @@index([email])
   @@map("users")
@@ -86,6 +90,8 @@ model Task {
   status          TaskStatus     @default(ACTIVE)
   calendarEvent   CalendarEvent? @relation(fields: [calendarEventId], references: [id])
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeEntries     TimeEntry[]
+  pomodoroRuns    PomodoroRun[]
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -107,6 +113,8 @@ model CalendarEvent {
   location    String?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tasks       Task[]
+  timeEntries TimeEntry[]
+  pomodoroRuns PomodoroRun[]
 
   @@map("calendar_events")
   @@schema("mindline")
@@ -211,5 +219,105 @@ enum ExternalType {
   TASK
   EVENT
 
+  @@schema("mindline")
+}
+
+enum TimeSource {
+  STOPWATCH
+  POMODORO
+  TIMER
+
+  @@schema("mindline")
+}
+
+model TimeEntry {
+  id               String      @id @default(cuid())
+  userId           String      @map("user_id")
+  start            DateTime
+  end              DateTime
+  duration         Int         // seconds
+  label            String?
+  distractionFree  Boolean     @default(true) @map("distraction_free")
+  taskId           String?     @map("task_id")
+  eventId          String?     @map("event_id")
+  source           TimeSource  @default(STOPWATCH)
+  // Pomodoro linkage (only for POMODORO work intervals)
+  pomodoroRunId    String?     @map("pomodoro_run_id")
+  pomodoroCycle    Int?        @map("pomodoro_cycle") // 1-based work index in the run
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task             Task?       @relation(fields: [taskId], references: [id])
+  event            CalendarEvent? @relation(fields: [eventId], references: [id])
+  pomodoroRun      PomodoroRun? @relation(fields: [pomodoroRunId], references: [id])
+
+  @@index([userId, start])
+  @@index([userId, source])
+  @@index([userId, pomodoroRunId])
+  @@map("time_entries")
+  @@schema("mindline")
+}
+
+model PomodoroRun {
+  id                  String   @id @default(cuid())
+  userId              String   @map("user_id")
+  startedAt           DateTime @map("started_at")
+  endedAt             DateTime? @map("ended_at")
+  // Snapshot of settings used for this run (history-safe):
+  workMinutes         Int      @map("work_minutes")
+  shortBreakMinutes   Int      @map("short_break_minutes")
+  longBreakMinutes    Int      @map("long_break_minutes")
+  longBreakEvery      Int      @map("long_break_every")
+  autoStartNextPhase  Boolean  @default(false) @map("auto_start_next_phase")
+  autoStartNextWork   Boolean  @default(true) @map("auto_start_next_work")
+  label               String?
+  taskId              String?  @map("task_id")
+  eventId             String?  @map("event_id")
+  distractionFreeDefault Boolean @default(true) @map("distraction_free_default")
+  completedWorkCount  Int      @default(0) @map("completed_work_count")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task                Task?    @relation(fields: [taskId], references: [id])
+  event               CalendarEvent? @relation(fields: [eventId], references: [id])
+  timeEntries         TimeEntry[]
+
+  @@index([userId, startedAt])
+  @@map("pomodoro_runs")
+  @@schema("mindline")
+}
+
+model PomodoroPreference {
+  userId                String  @id @map("user_id")
+  workMinutes           Int     @default(25) @map("work_minutes")
+  shortBreakMinutes     Int     @default(5) @map("short_break_minutes")
+  longBreakMinutes      Int     @default(15) @map("long_break_minutes")
+  longBreakEvery        Int     @default(4) @map("long_break_every")
+  autoStartNextPhase    Boolean @default(false) @map("auto_start_next_phase")
+  autoStartNextWork     Boolean @default(true) @map("auto_start_next_work")
+  soundEnabled          Boolean @default(false) @map("sound_enabled")
+  notificationsEnabled  Boolean @default(false) @map("notifications_enabled")
+  defaultLabel          String? @map("default_label")
+  distractionFreeDefault Boolean @default(true) @map("distraction_free_default")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pomodoro_preferences")
+  @@schema("mindline")
+}
+
+model DistractionPreference {
+  userId      String   @id @map("user_id")
+  targetName  String   @default("Instagram") @map("target_name") // allow arbitrary habit/site name
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("distraction_preferences")
   @@schema("mindline")
 }

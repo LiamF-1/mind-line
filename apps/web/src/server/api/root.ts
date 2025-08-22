@@ -5,6 +5,8 @@ import { noteRouter } from './routers/note'
 import { userRouter } from './routers/user'
 import { authRouter } from './routers/auth'
 import { boardRouter } from './routers/board'
+import { timeRouter } from './routers/time'
+import { pomodoroRouter } from './routers/pomodoro'
 
 /**
  * This is the primary router for your server.
@@ -18,6 +20,8 @@ export const appRouter = createTRPCRouter({
   note: noteRouter,
   user: userRouter,
   board: boardRouter,
+  time: timeRouter,
+  pomodoro: pomodoroRouter,
 })
 
 // export type definition of API

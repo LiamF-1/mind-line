@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { seedTimeTracking } from './seed-time-tracking'
 
 const prisma = new PrismaClient()
 
@@ -297,7 +298,12 @@ async function seedNotes() {
   console.log('Demo notes seeded successfully!')
 }
 
-seedNotes()
+async function main() {
+  await seedNotes()
+  await seedTimeTracking()
+}
+
+main()
   .catch((e) => {
     console.error(e)
     process.exit(1)

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
+import { TimerWidget } from '@/components/timer/timer-widget'
 
 export function Header() {
   const { data: session, status } = useSession()
@@ -24,6 +25,7 @@ export function Header() {
               <div className="bg-muted h-9 w-16 animate-pulse rounded-md" />
             ) : session ? (
               <>
+                <TimerWidget />
                 <Button variant="ghost" asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
