@@ -30,7 +30,8 @@ export function useFormattedTime() {
     if (mode === 'stopwatch') {
       let elapsed = stopwatch.elapsed || 0
       if (stopwatch.status === 'running' && stopwatch.startedAt) {
-        elapsed += Math.floor((now - stopwatch.startedAt.getTime()) / 1000)
+        const startedAt = new Date(stopwatch.startedAt)
+        elapsed += Math.floor((now - startedAt.getTime()) / 1000)
       }
       const h = Math.floor(elapsed / 3600)
       const m = Math.floor((elapsed % 3600) / 60)
@@ -40,7 +41,10 @@ export function useFormattedTime() {
 
     if (mode === 'pomodoro') {
       const remaining = phaseEndsAt
-        ? Math.max(0, Math.floor((phaseEndsAt.getTime() - now) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((new Date(phaseEndsAt).getTime() - now) / 1000)
+          )
         : 0
       const h = Math.floor(remaining / 3600)
       const m = Math.floor((remaining % 3600) / 60)
@@ -55,8 +59,9 @@ export function useFormattedTime() {
       if (!active) return '00:00'
       let elapsed = 0
       if (active.status === 'running' && active.startedAt) {
+        const startedAt = new Date(active.startedAt)
         elapsed =
-          Math.floor((now - active.startedAt.getTime()) / 1000) +
+          Math.floor((now - startedAt.getTime()) / 1000) +
           (active.pausedElapsed || 0)
       } else if (active.status === 'paused') {
         elapsed = active.pausedElapsed || 0
