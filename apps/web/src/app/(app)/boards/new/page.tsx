@@ -75,7 +75,7 @@ export default function NewBoardPage() {
         theme: selectedTheme,
       })
 
-      toast.success('Board created successfully!')
+      // Board created successfully
       router.push(`/boards/${board.id}`)
     } catch (error) {
       console.error('Failed to create board:', error)

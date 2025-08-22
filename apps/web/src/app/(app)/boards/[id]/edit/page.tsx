@@ -98,7 +98,7 @@ export default function EditBoardPage({ params }: EditBoardPageProps) {
         },
       })
 
-      toast.success('Board updated successfully!')
+      // Board updated successfully
       router.push(`/boards/${boardId}`)
     } catch (error) {
       toast.error('Failed to update board')

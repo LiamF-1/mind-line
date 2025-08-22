@@ -46,7 +46,6 @@ const navigation = [
     href: '/time-tracking',
     icon: Clock,
     current: false,
-    comingSoon: true,
   },
   {
     name: 'Settings',

@@ -87,7 +87,7 @@ export function EventFormModal({
   const createMutation = trpc.event.create.useMutation({
     onSuccess: () => {
       utils.event.getByDateRange.invalidate()
-      toast.success('Event created successfully')
+      // Event created successfully
       onClose()
     },
     onError: (error: any) => {
@@ -98,7 +98,7 @@ export function EventFormModal({
   const updateMutation = trpc.event.update.useMutation({
     onSuccess: () => {
       utils.event.getByDateRange.invalidate()
-      toast.success('Event updated successfully')
+      // Event updated successfully
       onClose()
     },
     onError: (error: any) => {
@@ -109,7 +109,7 @@ export function EventFormModal({
   const deleteMutation = trpc.event.delete.useMutation({
     onSuccess: () => {
       utils.event.getByDateRange.invalidate()
-      toast.success('Event deleted successfully')
+      // Event deleted successfully
       onClose()
     },
     onError: (error: any) => {

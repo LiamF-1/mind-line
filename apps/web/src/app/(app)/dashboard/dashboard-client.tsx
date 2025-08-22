@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -28,23 +28,33 @@ export function DashboardClient() {
   const { data: session } = useSession()
   const router = useRouter()
 
-  // Get current date range for today's events
-  const today = new Date()
-  const todayStart = startOfDay(today)
-  const todayEnd = endOfDay(today)
+  // Memoized date ranges to prevent excessive API calls
+  const dateRanges = useMemo(() => {
+    const today = new Date()
+    const todayStart = startOfDay(today)
+    const todayEnd = endOfDay(today)
+    const weekEnd = endOfDay(addDays(today, 7))
 
-  // Get upcoming events (next 7 days)
-  const weekEnd = endOfDay(addDays(today, 7))
+    return {
+      today: { start: todayStart, end: todayEnd },
+      upcoming: { start: todayStart, end: weekEnd },
+      todayDate: today,
+    }
+  }, [])
 
-  const { data: todayEvents = [] } = trpc.event.getByDateRange.useQuery({
-    start: todayStart,
-    end: todayEnd,
-  })
+  const { data: todayEvents = [] } = trpc.event.getByDateRange.useQuery(
+    dateRanges.today,
+    {
+      staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    }
+  )
 
-  const { data: upcomingEvents = [] } = trpc.event.getByDateRange.useQuery({
-    start: todayStart,
-    end: weekEnd,
-  })
+  const { data: upcomingEvents = [] } = trpc.event.getByDateRange.useQuery(
+    dateRanges.upcoming,
+    {
+      staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    }
+  )
 
   // Get task counts
   const { data: taskCounts } = trpc.task.getCounts.useQuery()
@@ -63,7 +73,7 @@ export function DashboardClient() {
   })
 
   const getGreeting = () => {
-    const hour = new Date().getHours()
+    const hour = dateRanges.todayDate.getHours()
     if (hour < 12) return 'Good morning'
     if (hour < 17) return 'Good afternoon'
     return 'Good evening'
@@ -116,7 +126,7 @@ export function DashboardClient() {
               {getGreeting()}, {session?.user?.name || 'there'}!
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              {format(today, 'EEEE, MMMM d, yyyy')}
+              {format(dateRanges.todayDate, 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
           <div className="hidden sm:block">

@@ -45,7 +45,7 @@ export default function BoardsPage() {
     ) {
       try {
         await deleteMutation.mutateAsync({ id: boardId })
-        toast.success('Board deleted successfully')
+        // Board deleted successfully
         // Refetch is automatically handled by the mutation, but we can call it explicitly for safety
         refetch()
       } catch (error) {
