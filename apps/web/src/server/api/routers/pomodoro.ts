@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-// import { TimeSource } from '@prisma/client' // Temporarily commented out due to Prisma generation issue
+import { TimeSource } from '@prisma/client'
 import { startOfDay, endOfDay, subDays } from 'date-fns'
 
 export const pomodoroRouter = createTRPCRouter({
@@ -192,7 +192,7 @@ export const pomodoroRouter = createTRPCRouter({
               taskId: run.taskId,
               eventId: run.eventId,
               distractionFree: run.distractionFreeDefault,
-              source: 'POMODORO',
+              source: TimeSource.POMODORO,
               pomodoroRunId: run.id,
               pomodoroCycle: run.completedWorkCount + 1,
             },
@@ -242,7 +242,7 @@ export const pomodoroRouter = createTRPCRouter({
               taskId: run.taskId,
               eventId: run.eventId,
               distractionFree: run.distractionFreeDefault,
-              source: 'POMODORO',
+              source: TimeSource.POMODORO,
               pomodoroRunId: run.id,
               pomodoroCycle: input.cycle,
             },

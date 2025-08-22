@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
+import { nanoid } from 'nanoid'
 
 export type TimerMode = 'stopwatch' | 'pomodoro' | 'timer'
 export type PomodoroPhase = 'work' | 'shortBreak' | 'longBreak'
@@ -445,7 +446,7 @@ export const useTimerStore = create<TimerStore>()(
 
       // Timer actions
       createTimer: (name, duration, assignment) => {
-        const id = `timer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        const id = `timer-${nanoid()}`
         set((state) => {
           // Limit to 5 timers maximum
           if (state.timer.timers.length >= 5) {

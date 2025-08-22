@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { startOfDay, endOfDay } from 'date-fns'
-// import { TimeSource } from '@prisma/client' // Temporarily commented out due to Prisma generation issue
+import { TimeSource, Prisma } from '@prisma/client'
 
 export const timeRouter = createTRPCRouter({
   startTimer: protectedProcedure
@@ -53,7 +53,7 @@ export const timeRouter = createTRPCRouter({
           taskId: input.taskId,
           eventId: input.eventId,
           distractionFree: input.distractionFree,
-          source: 'STOPWATCH',
+          source: TimeSource.STOPWATCH,
         },
         include: {
           task: true,
@@ -73,7 +73,7 @@ export const timeRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.TimeEntryWhereInput = {
         userId: ctx.session.user.id,
       }
 
@@ -98,7 +98,7 @@ export const timeRouter = createTRPCRouter({
     }),
 
   getStreak: protectedProcedure.query(async ({ ctx }) => {
-    // Get current streak from view
+    // Get current streak from view (using parameterized query)
     const streakResult = await ctx.prisma.$queryRaw<
       { current_streak: bigint }[]
     >`
@@ -128,7 +128,7 @@ export const timeRouter = createTRPCRouter({
     const currentStreak =
       streakResult.length > 0 ? Number(streakResult[0].current_streak) : 0
 
-    // Get best streak (historical max)
+    // Get best streak (historical max) (using parameterized query)
     const bestStreakResult = await ctx.prisma.$queryRaw<
       { max_streak: bigint }[]
     >`
@@ -263,46 +263,60 @@ export const timeRouter = createTRPCRouter({
       const from = new Date(input.range.from)
       const to = new Date(input.range.to)
 
-      // Get total minutes
-      const totalResult = await ctx.prisma.$queryRaw<
-        { total_minutes: number }[]
-      >`
-        SELECT COALESCE(SUM(duration), 0) / 60.0 AS total_minutes
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND start >= ${from}
-          AND start <= ${to}
-      `
+      // Get total minutes using Prisma aggregate
+      const totalAggregate = await ctx.prisma.timeEntry.aggregate({
+        _sum: { duration: true },
+        where: {
+          userId: ctx.session.user.id,
+          start: {
+            gte: from,
+            lte: to,
+          },
+        },
+      })
+      const totalMinutes = (totalAggregate._sum.duration ?? 0) / 60.0
 
-      const totalMinutes = totalResult[0]?.total_minutes || 0
+      // Get all entries for daily breakdown
+      const entries = await ctx.prisma.timeEntry.findMany({
+        where: {
+          userId: ctx.session.user.id,
+          start: {
+            gte: from,
+            lte: to,
+          },
+        },
+        select: {
+          start: true,
+          duration: true,
+        },
+        orderBy: { start: 'asc' },
+      })
 
-      // Get daily breakdown
-      const dailyResult = await ctx.prisma.$queryRaw<
-        {
-          day: string
-          total_minutes: number
-          session_count: number
-        }[]
-      >`
-        SELECT 
-          (start AT TIME ZONE 'UTC')::date AS day,
-          SUM(duration) / 60.0 AS total_minutes,
-          COUNT(*) AS session_count
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND start >= ${from}
-          AND start <= ${to}
-        GROUP BY day
-        ORDER BY day
-      `
+      // Group by day (UTC) and aggregate
+      const dailyMap = new Map<
+        string,
+        { total_minutes: number; session_count: number }
+      >()
+      entries.forEach((entry: { start: Date; duration: number }) => {
+        // Convert start to UTC date string (YYYY-MM-DD)
+        const day = entry.start.toISOString().slice(0, 10)
+        if (!dailyMap.has(day)) {
+          dailyMap.set(day, { total_minutes: 0, session_count: 0 })
+        }
+        const current = dailyMap.get(day)!
+        current.total_minutes += entry.duration / 60.0
+        current.session_count += 1
+      })
 
       return {
         totalMinutes,
-        dailyBreakdown: dailyResult.map((row) => ({
-          day: row.day,
-          totalMinutes: Number(row.total_minutes),
-          sessionCount: Number(row.session_count),
-        })),
+        dailyBreakdown: Array.from(dailyMap.entries())
+          .map(([day, data]) => ({
+            day,
+            totalMinutes: Number(data.total_minutes),
+            sessionCount: Number(data.session_count),
+          }))
+          .sort((a, b) => a.day.localeCompare(b.day)),
       }
     }),
 
@@ -311,15 +325,18 @@ export const timeRouter = createTRPCRouter({
     const from = startOfDay(today)
     const to = endOfDay(today)
 
-    const result = await ctx.prisma.$queryRaw<{ total_minutes: number }[]>`
-      SELECT COALESCE(SUM(duration), 0) / 60.0 AS total_minutes
-      FROM mindline.time_entries
-      WHERE user_id = ${ctx.session.user.id}
-        AND start >= ${from}
-        AND start <= ${to}
-    `
+    const result = await ctx.prisma.timeEntry.aggregate({
+      _sum: { duration: true },
+      where: {
+        userId: ctx.session.user.id,
+        start: {
+          gte: from,
+          lte: to,
+        },
+      },
+    })
 
-    return Number(result[0]?.total_minutes || 0)
+    return (result._sum.duration ?? 0) / 60.0
   }),
 
   getPomodoroSummary: protectedProcedure
@@ -335,44 +352,38 @@ export const timeRouter = createTRPCRouter({
       const from = new Date(input.range.from)
       const to = new Date(input.range.to)
 
-      // Get pomodoro stats
-      const pomodoroResult = await ctx.prisma.$queryRaw<
-        {
-          total_pomodoros: number
-          total_minutes: number
-        }[]
-      >`
-        SELECT 
-          COUNT(*) AS total_pomodoros,
-          SUM(duration) / 60.0 AS total_minutes
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND source = 'POMODORO'
-          AND start >= ${from}
-          AND start <= ${to}
-      `
+      // Get pomodoro stats using Prisma aggregate
+      const pomodoroResult = await ctx.prisma.timeEntry.aggregate({
+        _count: { id: true },
+        _sum: { duration: true },
+        where: {
+          userId: ctx.session.user.id,
+          source: TimeSource.POMODORO,
+          start: {
+            gte: from,
+            lte: to,
+          },
+        },
+      })
 
-      const todayResult = await ctx.prisma.$queryRaw<
-        {
-          today_pomodoros: number
-          today_minutes: number
-        }[]
-      >`
-        SELECT 
-          COUNT(*) AS today_pomodoros,
-          SUM(duration) / 60.0 AS today_minutes
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND source = 'POMODORO'
-          AND start >= ${startOfDay(new Date())}
-          AND start <= ${endOfDay(new Date())}
-      `
+      const todayResult = await ctx.prisma.timeEntry.aggregate({
+        _count: { id: true },
+        _sum: { duration: true },
+        where: {
+          userId: ctx.session.user.id,
+          source: TimeSource.POMODORO,
+          start: {
+            gte: startOfDay(new Date()),
+            lte: endOfDay(new Date()),
+          },
+        },
+      })
 
       return {
-        totalPomodoros: Number(pomodoroResult[0]?.total_pomodoros || 0),
-        totalMinutes: Number(pomodoroResult[0]?.total_minutes || 0),
-        todayPomodoros: Number(todayResult[0]?.today_pomodoros || 0),
-        todayMinutes: Number(todayResult[0]?.today_minutes || 0),
+        totalPomodoros: pomodoroResult._count.id,
+        totalMinutes: (pomodoroResult._sum.duration ?? 0) / 60.0,
+        todayPomodoros: todayResult._count.id,
+        todayMinutes: (todayResult._sum.duration ?? 0) / 60.0,
       }
     }),
 
@@ -408,7 +419,7 @@ export const timeRouter = createTRPCRouter({
           taskId: input.taskId,
           eventId: input.eventId,
           distractionFree: input.distractionFree,
-          source: 'TIMER',
+          source: TimeSource.TIMER,
         },
         include: {
           task: {
@@ -446,47 +457,40 @@ export const timeRouter = createTRPCRouter({
       const from = new Date(input.range.from)
       const to = new Date(input.range.to)
 
-      // Get timer stats
-      const timerResult = await ctx.prisma.$queryRaw<
-        {
-          total_sessions: number
-          total_minutes: number
-          avg_duration: number
-        }[]
-      >`
-        SELECT 
-          COUNT(*) AS total_sessions,
-          SUM(duration) / 60.0 AS total_minutes,
-          AVG(duration) / 60.0 AS avg_duration
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND source = 'TIMER'
-          AND start >= ${from}
-          AND start <= ${to}
-      `
+      // Get timer stats using Prisma aggregate
+      const timerResult = await ctx.prisma.timeEntry.aggregate({
+        _count: { id: true },
+        _sum: { duration: true },
+        _avg: { duration: true },
+        where: {
+          userId: ctx.session.user.id,
+          source: TimeSource.TIMER,
+          start: {
+            gte: from,
+            lte: to,
+          },
+        },
+      })
 
-      const todayResult = await ctx.prisma.$queryRaw<
-        {
-          today_sessions: number
-          today_minutes: number
-        }[]
-      >`
-        SELECT 
-          COUNT(*) AS today_sessions,
-          SUM(duration) / 60.0 AS today_minutes
-        FROM mindline.time_entries
-        WHERE user_id = ${ctx.session.user.id}
-          AND source = 'TIMER'
-          AND start >= ${startOfDay(new Date())}
-          AND start <= ${endOfDay(new Date())}
-      `
+      const todayResult = await ctx.prisma.timeEntry.aggregate({
+        _count: { id: true },
+        _sum: { duration: true },
+        where: {
+          userId: ctx.session.user.id,
+          source: TimeSource.TIMER,
+          start: {
+            gte: startOfDay(new Date()),
+            lte: endOfDay(new Date()),
+          },
+        },
+      })
 
       return {
-        totalSessions: Number(timerResult[0]?.total_sessions || 0),
-        totalMinutes: Number(timerResult[0]?.total_minutes || 0),
-        avgDuration: Number(timerResult[0]?.avg_duration || 0),
-        todaySessions: Number(todayResult[0]?.today_sessions || 0),
-        todayMinutes: Number(todayResult[0]?.today_minutes || 0),
+        totalSessions: timerResult._count.id,
+        totalMinutes: (timerResult._sum.duration ?? 0) / 60.0,
+        avgDuration: (timerResult._avg.duration ?? 0) / 60.0,
+        todaySessions: todayResult._count.id,
+        todayMinutes: (todayResult._sum.duration ?? 0) / 60.0,
       }
     }),
 })

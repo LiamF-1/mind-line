@@ -34,6 +34,7 @@ import { useTimerStore, useFormattedTime } from '@/lib/stores/timer-store'
 import { shallow } from 'zustand/shallow'
 import { trpc } from '@/lib/trpc'
 import { toast } from 'sonner'
+// TODO: Implement these modals
 // import { TimerAssignmentModal } from './timer-assignment-modal'
 // import { PomodoroSettingsModal } from './pomodoro-settings-modal'
 
@@ -685,16 +686,9 @@ export function TimerWidget() {
         </DropdownMenu>
       </div>
 
-      {/* TODO: Uncomment when modals are created */}
-      {/* <TimerAssignmentModal 
-        open={showAssignmentModal}
-        onOpenChange={setShowAssignmentModal}
-      />
-      
-      <PomodoroSettingsModal
-        open={showSettingsModal}
-        onOpenChange={setShowSettingsModal}
-      /> */}
+      {/* TODO: Implement assignment and settings modals */}
+      {showAssignmentModal && <div>Assignment Modal placeholder</div>}
+      {showSettingsModal && <div>Settings Modal placeholder</div>}
 
       {/* Timer Creation Dialog */}
       <Dialog open={showCreateTimer} onOpenChange={setShowCreateTimer}>
