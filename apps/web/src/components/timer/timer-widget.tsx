@@ -30,13 +30,15 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react'
-import { useTimerStore, useFormattedTime } from '@/lib/stores/timer-store'
+import { useTimerStore } from '@/lib/stores/timer-store'
+import { useFormattedTime } from '@/lib/stores/useFormattedTime'
+import { useStoreWithEqualityFn } from 'zustand/traditional'
 import { shallow } from 'zustand/shallow'
 import { trpc } from '@/lib/trpc'
 import { toast } from 'sonner'
 // TODO: Implement these modals
 // import { TimerAssignmentModal } from './timer-assignment-modal'
-// import { PomodoroSettingsModal } from './pomodoro-settings-modal'
+import { PomodoroSettingsModal } from './pomodoro-settings-modal'
 
 export function TimerWidget() {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false)
@@ -73,7 +75,8 @@ export function TimerWidget() {
     stopTimer,
     deleteTimer,
     reset,
-  } = useTimerStore(
+  } = useStoreWithEqualityFn(
+    useTimerStore,
     (s) => ({
       mode: s.mode,
       stopwatchStatus: s.stopwatch.status,
@@ -157,16 +160,6 @@ export function TimerWidget() {
     setIsClient(true)
   }, [])
 
-  // Debug preferences query
-  useEffect(() => {
-    console.log('Pomodoro preferences query state:', {
-      data: pomodoroPreferencesQuery.data,
-      isLoading: pomodoroPreferencesQuery.isLoading,
-      error: pomodoroPreferencesQuery.error,
-      isError: pomodoroPreferencesQuery.isError,
-    })
-  }, [pomodoroPreferencesQuery])
-
   // Use ref to store the mutation function to avoid dependency issues
   const completePhaseMutationRef = useRef(completePhaseMutation.mutateAsync)
   completePhaseMutationRef.current = completePhaseMutation.mutateAsync
@@ -200,39 +193,41 @@ export function TimerWidget() {
   }, [pomodoroEndsAt, pomodoroRunId, completePomodoroPhase])
 
   // Auto-complete pomodoro phases when timer reaches zero
+  const completedKeyRef = useRef<string | null>(null)
+
   useEffect(() => {
     if (
       mode !== 'pomodoro' ||
       pomodoroStatus !== 'running' ||
       !pomodoroEndsAt ||
       !pomodoroRunId
-    ) {
+    )
+      return
+
+    const key = `${pomodoroRunId}:${pomodoroEndsAt.getTime()}`
+    const ms = pomodoroEndsAt.getTime() - Date.now()
+
+    if (ms <= 0) {
+      if (completedKeyRef.current !== key) {
+        completedKeyRef.current = key
+        void handlePhaseCompletion()
+      }
       return
     }
 
-    let locked = false // prevents double-complete within one effect lifetime
-
-    const checkCompletion = async () => {
-      if (!locked) {
-        locked = true // guard against multiple calls in this closure
-        await handlePhaseCompletion()
+    const t = setTimeout(() => {
+      if (completedKeyRef.current !== key) {
+        completedKeyRef.current = key
+        void handlePhaseCompletion()
       }
-    }
+    }, ms + 30)
 
-    // Check immediately, then every second
-    checkCompletion()
-    const id = setInterval(checkCompletion, 1000)
-
-    return () => {
-      locked = true
-      clearInterval(id)
-    }
+    return () => clearTimeout(t)
   }, [
     mode,
     pomodoroStatus,
-    pomodoroRunId,
-    pomodoroPhase,
     pomodoroEndsAt,
+    pomodoroRunId,
     handlePhaseCompletion,
   ])
 
@@ -268,12 +263,24 @@ export function TimerWidget() {
       console.log('Using preferences:', pomodoroPreferencesQuery.data)
 
       startPomodoro(run.id, {
-        workMinutes: pomodoroPreferencesQuery.data.workMinutes,
-        shortBreakMinutes: pomodoroPreferencesQuery.data.shortBreakMinutes,
-        longBreakMinutes: pomodoroPreferencesQuery.data.longBreakMinutes,
-        longBreakEvery: pomodoroPreferencesQuery.data.longBreakEvery,
-        autoStartNextPhase: pomodoroPreferencesQuery.data.autoStartNextPhase,
-        autoStartNextWork: pomodoroPreferencesQuery.data.autoStartNextWork,
+        workMinutes: Math.max(
+          1,
+          pomodoroPreferencesQuery.data.workMinutes ?? 25
+        ),
+        shortBreakMinutes: Math.max(
+          1,
+          pomodoroPreferencesQuery.data.shortBreakMinutes ?? 5
+        ),
+        longBreakMinutes: Math.max(
+          1,
+          pomodoroPreferencesQuery.data.longBreakMinutes ?? 15
+        ),
+        longBreakEvery: Math.max(
+          1,
+          pomodoroPreferencesQuery.data.longBreakEvery ?? 4
+        ),
+        autoStartNextPhase: !!pomodoroPreferencesQuery.data.autoStartNextPhase,
+        autoStartNextWork: !!pomodoroPreferencesQuery.data.autoStartNextWork,
       })
 
       // Pomodoro started successfully
@@ -443,6 +450,7 @@ export function TimerWidget() {
       case 'work':
         return <Timer className="h-3 w-3" />
       case 'shortBreak':
+        return <Coffee className="h-3 w-3" />
       case 'longBreak':
         return <Coffee className="h-3 w-3" />
       default:
@@ -489,8 +497,7 @@ export function TimerWidget() {
             (mode === 'pomodoro' &&
               (startPomodoroMutation.isPending ||
                 !pomodoroPreferencesQuery.data)) ||
-            (mode === 'timer' && !activeTimer) ||
-            startPomodoroMutation.isPending
+            (mode === 'timer' && !activeTimer)
           }
         >
           <Play className="h-3 w-3" />
@@ -686,9 +693,14 @@ export function TimerWidget() {
         </DropdownMenu>
       </div>
 
-      {/* TODO: Implement assignment and settings modals */}
+      {/* TODO: Implement assignment modal */}
       {showAssignmentModal && <div>Assignment Modal placeholder</div>}
-      {showSettingsModal && <div>Settings Modal placeholder</div>}
+
+      {/* Pomodoro Settings Modal */}
+      <PomodoroSettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
+      />
 
       {/* Timer Creation Dialog */}
       <Dialog open={showCreateTimer} onOpenChange={setShowCreateTimer}>

@@ -3,6 +3,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TimerWidget } from '@/components/timer/timer-widget'
 import { useTimerStore } from '@/lib/stores/timer-store'
+import { useFormattedTime } from '@/lib/stores/useFormattedTime'
+
+// Mock the useFormattedTime hook
+vi.mock('@/lib/stores/useFormattedTime', () => {
+  const mockFn = vi.fn(() => ({
+    formattedTime: '00:00',
+    isRunning: false,
+    phase: 'work',
+    cycle: 1,
+  }))
+  return {
+    useFormattedTime: mockFn,
+  }
+})
 
 // Mock dependencies
 vi.mock('@/lib/trpc', () => ({
@@ -227,6 +241,14 @@ describe('TimerWidget', () => {
       },
     }))
 
+    // Update mock to return shortBreak phase
+    vi.mocked(useFormattedTime).mockReturnValue({
+      formattedTime: '00:00',
+      isRunning: true,
+      phase: 'shortBreak',
+      cycle: 1,
+    })
+
     render(<TimerWidget />)
 
     // Test that the component renders correctly in break phase
@@ -244,6 +266,14 @@ describe('TimerWidget', () => {
         runId: 'run-123',
       },
     }))
+
+    // Update mock to return work phase
+    vi.mocked(useFormattedTime).mockReturnValue({
+      formattedTime: '00:00',
+      isRunning: true,
+      phase: 'work',
+      cycle: 1,
+    })
 
     render(<TimerWidget />)
 
@@ -281,6 +311,14 @@ describe('TimerWidget', () => {
         elapsed: 3665, // 1 hour, 1 minute, 5 seconds
       },
     }))
+
+    // Update mock to return the expected formatted time
+    vi.mocked(useFormattedTime).mockReturnValue({
+      formattedTime: '01:01:05',
+      isRunning: false,
+      phase: 'work',
+      cycle: 1,
+    })
 
     render(<TimerWidget />)
 

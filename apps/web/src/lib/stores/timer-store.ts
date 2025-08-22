@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
 import { nanoid } from 'nanoid'
@@ -153,7 +153,7 @@ const initialTimerState: TimerState = {
   activeTimerId: undefined,
 }
 
-export const useTimerStore = create<TimerStore>()(
+export const useTimerStore = createWithEqualityFn<TimerStore>()(
   persist(
     (set, get) => ({
       mode: 'stopwatch',
@@ -713,155 +713,3 @@ export const useTimerStore = create<TimerStore>()(
     }
   )
 )
-
-// Hook for getting formatted time display with real-time updates
-export const useFormattedTime = () => {
-  const sel = useTimerStore(
-    (s) => ({
-      mode: s.mode,
-      swStatus: s.stopwatch.status,
-      swStartedAt: s.stopwatch.startedAt,
-      swElapsed: s.stopwatch.elapsed,
-      pStatus: s.pomodoro.status,
-      pPhase: s.pomodoro.phase,
-      pCycle: s.pomodoro.cycle,
-      pEndsAt: s.pomodoro.phaseEndsAt,
-      pPausedAt: s.pomodoro.pausedAt,
-      tActiveId: s.timer.activeTimerId,
-      tTimers: s.timer.timers,
-    }),
-    shallow
-  )
-
-  const [seconds, setSeconds] = useState(0)
-
-  const isRunning =
-    sel.mode === 'stopwatch'
-      ? sel.swStatus === 'running'
-      : sel.mode === 'pomodoro'
-        ? sel.pStatus === 'running'
-        : sel.mode === 'timer'
-          ? (() => {
-              const activeTimer = sel.tTimers.find(
-                (t) => t.id === sel.tActiveId
-              )
-              return activeTimer?.status === 'running'
-            })()
-          : false
-
-  // Initialize when meaningful timer state changes
-  useEffect(() => {
-    const now = Date.now()
-    if (sel.mode === 'stopwatch') {
-      if (sel.swStatus === 'running' && sel.swStartedAt) {
-        setSeconds(Math.floor((now - sel.swStartedAt.getTime()) / 1000))
-      } else {
-        setSeconds(sel.swElapsed ?? 0)
-      }
-    } else if (sel.mode === 'pomodoro') {
-      if (sel.pEndsAt) {
-        if (sel.pStatus === 'running') {
-          setSeconds(
-            Math.max(0, Math.floor((sel.pEndsAt.getTime() - now) / 1000))
-          )
-        } else if (sel.pStatus === 'paused' && sel.pPausedAt) {
-          setSeconds(
-            Math.max(
-              0,
-              Math.floor(
-                (sel.pEndsAt.getTime() - sel.pPausedAt.getTime()) / 1000
-              )
-            )
-          )
-        } else {
-          setSeconds(0)
-        }
-      } else {
-        setSeconds(0)
-      }
-    } else if (sel.mode === 'timer') {
-      const activeTimer = sel.tTimers.find((t) => t.id === sel.tActiveId)
-      if (activeTimer) {
-        if (activeTimer.status === 'running' && activeTimer.endsAt) {
-          setSeconds(
-            Math.max(0, Math.floor((activeTimer.endsAt.getTime() - now) / 1000))
-          )
-        } else if (activeTimer.status === 'paused') {
-          setSeconds(
-            Math.max(0, activeTimer.duration - activeTimer.pausedElapsed)
-          )
-        } else {
-          setSeconds(0)
-        }
-      } else {
-        setSeconds(0)
-      }
-    }
-  }, [
-    sel.mode,
-    sel.swStatus,
-    sel.swStartedAt,
-    sel.swElapsed,
-    sel.pStatus,
-    sel.pEndsAt,
-    sel.pPausedAt,
-    sel.tActiveId,
-    sel.tTimers,
-  ])
-
-  // Ticking – depends only on isRunning, not store objects
-  useEffect(() => {
-    if (!isRunning) return
-    const id = setInterval(() => {
-      const now = Date.now()
-      if (sel.mode === 'stopwatch') {
-        if (sel.swStatus === 'running' && sel.swStartedAt) {
-          setSeconds(Math.floor((now - sel.swStartedAt.getTime()) / 1000))
-        }
-      } else if (
-        sel.mode === 'pomodoro' &&
-        sel.pStatus === 'running' &&
-        sel.pEndsAt
-      ) {
-        setSeconds(
-          Math.max(0, Math.floor((sel.pEndsAt.getTime() - now) / 1000))
-        )
-      } else if (sel.mode === 'timer') {
-        const activeTimer = sel.tTimers.find((t) => t.id === sel.tActiveId)
-        if (activeTimer?.status === 'running' && activeTimer.endsAt) {
-          setSeconds(
-            Math.max(0, Math.floor((activeTimer.endsAt.getTime() - now) / 1000))
-          )
-        }
-      }
-    }, 1000)
-    return () => clearInterval(id)
-  }, [
-    isRunning,
-    sel.mode,
-    sel.swStatus,
-    sel.swStartedAt,
-    sel.pStatus,
-    sel.pEndsAt,
-    sel.tActiveId,
-    sel.tTimers,
-  ])
-
-  const formatTime = (s: number) => {
-    const h = Math.floor(s / 3600)
-    const m = Math.floor((s % 3600) / 60)
-    const sec = s % 60
-    return h > 0
-      ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
-      : `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
-  }
-
-  return {
-    formattedTime: formatTime(seconds),
-    seconds,
-    isRunning,
-    mode: sel.mode,
-    phase: sel.mode === 'pomodoro' ? sel.pPhase : undefined,
-    cycle: sel.mode === 'pomodoro' ? sel.pCycle : undefined,
-  }
-}

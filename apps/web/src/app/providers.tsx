@@ -7,6 +7,7 @@ import { SessionProvider } from 'next-auth/react'
 import { trpc } from '@/lib/trpc'
 import { Toaster } from 'sonner'
 import superjson from 'superjson'
+import DevGuard from './dev-guard'
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') return '' // browser should use relative url
@@ -30,13 +31,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <SessionProvider>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster position="top-right" richColors />
-        </QueryClientProvider>
-      </trpc.Provider>
-    </SessionProvider>
+    <>
+      <DevGuard />
+      <SessionProvider>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <Toaster position="top-right" richColors />
+          </QueryClientProvider>
+        </trpc.Provider>
+      </SessionProvider>
+    </>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { subDays, startOfDay, endOfDay, format } from 'date-fns'
 import {
   Card,
@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { trpc } from '@/lib/trpc'
+import { PomodoroSettingsModal } from '@/components/timer/pomodoro-settings-modal'
 import {
   Timer,
   Coffee,
@@ -32,11 +33,14 @@ import {
   Square,
   Plus,
   X,
+  Settings,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { TimeEntryEditModal } from '@/components/timer/time-entry-edit-modal'
 import { StreakPanel } from '@/components/timer/streak-panel'
 import { useTimerStore } from '@/lib/stores/timer-store'
+import { useFormattedTime } from '@/lib/stores/useFormattedTime'
+import { useStoreWithEqualityFn } from 'zustand/traditional'
 import { Input } from '@/components/ui/input'
 import {
   Dialog,
@@ -66,6 +70,7 @@ export function TimeTrackingClient() {
   const [showCreateTimer, setShowCreateTimer] = useState(false)
   const [newTimerName, setNewTimerName] = useState('')
   const [newTimerDuration, setNewTimerDuration] = useState(25)
+  const [showPomodoroSettings, setShowPomodoroSettings] = useState(false)
 
   // Timer store
   const {
@@ -90,7 +95,8 @@ export function TimeTrackingClient() {
     stopTimer,
     deleteTimer,
     reset,
-  } = useTimerStore(
+  } = useStoreWithEqualityFn(
+    useTimerStore,
     (s) => ({
       mode: s.mode,
       stopwatchStatus: s.stopwatch.status,
@@ -182,6 +188,75 @@ export function TimeTrackingClient() {
   })
 
   const pomodoroPreferencesQuery = trpc.pomodoro.getPreferences.useQuery()
+
+  const { formattedTime, isRunning, phase, cycle } = useFormattedTime()
+
+  // Helper functions for display values
+  const getStopwatchDisplay = useCallback(() => {
+    if (stopwatchStatus === 'idle') return '00:00'
+    // Only use formattedTime if we're in stopwatch mode, otherwise calculate manually
+    if (mode === 'stopwatch') return formattedTime
+
+    // Calculate stopwatch time manually when not in stopwatch mode
+    const stopwatch = useTimerStore.getState().stopwatch
+    let elapsed = stopwatch.elapsed || 0
+    if (stopwatch.status === 'running' && stopwatch.startedAt) {
+      elapsed += Math.floor((Date.now() - stopwatch.startedAt.getTime()) / 1000)
+    }
+
+    const hours = Math.floor(elapsed / 3600)
+    const minutes = Math.floor((elapsed % 3600) / 60)
+    const seconds = elapsed % 60
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }, [stopwatchStatus, mode, formattedTime])
+
+  const getPomodoroDisplay = useCallback(() => {
+    if (pomodoroStatus === 'idle') {
+      // Show initial work duration when idle
+      const workMinutes = pomodoroPreferencesQuery.data?.workMinutes || 25
+      return `${workMinutes.toString().padStart(2, '0')}:00`
+    }
+
+    // Only use formattedTime if we're in pomodoro mode, otherwise calculate manually
+    if (mode === 'pomodoro') return formattedTime
+
+    // Calculate pomodoro time manually when not in pomodoro mode
+    const pomodoro = useTimerStore.getState().pomodoro
+    if (pomodoro.phaseEndsAt) {
+      const remaining = Math.max(
+        0,
+        Math.floor((pomodoro.phaseEndsAt.getTime() - Date.now()) / 1000)
+      )
+      const hours = Math.floor(remaining / 3600)
+      const minutes = Math.floor((remaining % 3600) / 60)
+      const seconds = remaining % 60
+
+      if (hours > 0) {
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      }
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+
+    return '00:00'
+  }, [
+    pomodoroStatus,
+    mode,
+    formattedTime,
+    pomodoroPreferencesQuery.data?.workMinutes,
+  ])
+
+  // Force re-render every second for live time updates
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((tick) => tick + 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleDeleteEntry = (id: string) => {
     if (confirm('Are you sure you want to delete this time entry?')) {
@@ -324,6 +399,36 @@ export function TimeTrackingClient() {
     return 'Untitled session'
   }
 
+  // Helper function to format timer time
+  const getTimerFormattedTime = useCallback((timer: any) => {
+    let elapsed = 0
+
+    if (timer.status === 'running' && timer.startedAt) {
+      // Current elapsed = time since start + any previously paused elapsed time
+      const currentRunTime = Math.floor(
+        (Date.now() - timer.startedAt.getTime()) / 1000
+      )
+      elapsed = currentRunTime + (timer.pausedElapsed || 0)
+    } else if (timer.status === 'paused') {
+      // When paused, use the stored pausedElapsed time
+      elapsed = timer.pausedElapsed || 0
+    } else {
+      // When idle, show full duration
+      elapsed = 0
+    }
+
+    // For countdown timers, show remaining time
+    const remaining = Math.max(0, timer.duration - elapsed)
+    const hours = Math.floor(remaining / 3600)
+    const minutes = Math.floor((remaining % 3600) / 60)
+    const seconds = remaining % 60
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }, [])
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -420,15 +525,19 @@ export function TimeTrackingClient() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-muted-foreground text-sm">
-                  Status:{' '}
-                  <Badge
-                    variant={
-                      stopwatchStatus === 'running' ? 'default' : 'secondary'
-                    }
+                <div className="mt-2">
+                  <div
+                    className={`font-mono text-2xl font-bold ${stopwatchStatus === 'running' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
                   >
-                    {stopwatchStatus}
-                  </Badge>
+                    {getStopwatchDisplay()}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {stopwatchStatus === 'idle'
+                      ? 'Ready to start'
+                      : stopwatchStatus === 'running'
+                        ? 'Elapsed time'
+                        : 'Paused'}
+                  </p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -479,21 +588,28 @@ export function TimeTrackingClient() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-muted-foreground text-sm">
-                  Status:{' '}
-                  <Badge
-                    variant={
-                      pomodoroStatus === 'running' ? 'default' : 'secondary'
-                    }
-                  >
-                    {pomodoroStatus}
-                  </Badge>
-                </div>
-                {pomodoroPhase && (
+                {(pomodoroPhase || pomodoroStatus === 'idle') && (
                   <p className="text-muted-foreground mt-1 text-xs">
-                    Phase: {pomodoroPhase}
+                    Phase: {pomodoroPhase || 'work'}{' '}
+                    {cycle && `(Cycle ${cycle})`}
                   </p>
                 )}
+                <div className="mt-2">
+                  <div
+                    className={`font-mono text-2xl font-bold ${pomodoroStatus === 'running' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-400'}`}
+                  >
+                    {getPomodoroDisplay()}
+                  </div>
+                  <div className="text-muted-foreground mt-1 text-xs">
+                    {pomodoroStatus === 'idle'
+                      ? '🍅 Ready to start work session'
+                      : phase === 'work'
+                        ? '🍅 Work session'
+                        : phase === 'shortBreak'
+                          ? '☕ Short Break'
+                          : '🛋️ Long Break'}
+                  </div>
+                </div>
               </div>
               <div className="flex gap-2">
                 {pomodoroStatus === 'idle' && (
@@ -520,6 +636,13 @@ export function TimeTrackingClient() {
                     Resume
                   </Button>
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPomodoroSettings(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -626,9 +749,23 @@ export function TimeTrackingClient() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-muted-foreground mb-3 text-xs">
-                        {Math.floor(timer.duration / 60)} minutes
+                      <p className="text-muted-foreground mb-1 text-xs">
+                        {Math.floor(timer.duration / 60)} minutes total
                       </p>
+                      <div className="mb-3">
+                        <div
+                          className={`font-mono text-lg font-bold ${timer.status === 'running' ? 'text-green-600 dark:text-green-400' : timer.status === 'paused' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-600 dark:text-gray-400'}`}
+                        >
+                          {getTimerFormattedTime(timer)}
+                        </div>
+                        <p className="text-muted-foreground text-xs">
+                          {timer.status === 'running'
+                            ? 'Remaining'
+                            : timer.status === 'paused'
+                              ? 'Paused'
+                              : 'Ready to start'}
+                        </p>
+                      </div>
                       <div className="flex items-center gap-2">
                         {timer.status === 'idle' && (
                           <Button
@@ -839,6 +976,12 @@ export function TimeTrackingClient() {
           }}
         />
       )}
+
+      {/* Pomodoro Settings Modal */}
+      <PomodoroSettingsModal
+        open={showPomodoroSettings}
+        onOpenChange={setShowPomodoroSettings}
+      />
     </div>
   )
 }

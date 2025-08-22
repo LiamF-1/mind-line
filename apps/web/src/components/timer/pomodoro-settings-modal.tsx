@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -49,13 +50,18 @@ export function PomodoroSettingsModal({
   open,
   onOpenChange,
 }: PomodoroSettingsModalProps) {
-  const { data: preferences, refetch } = trpc.pomodoro.getPreferences.useQuery()
+  // ✅ Only query when the modal is open; also keep data stable for a bit
+  const { data: preferences } = trpc.pomodoro.getPreferences.useQuery(
+    undefined,
+    {
+      enabled: open,
+      staleTime: 5 * 60 * 1000,
+    }
+  )
 
   const updatePreferencesMutation = trpc.pomodoro.updatePreferences.useMutation(
     {
       onSuccess: () => {
-        // Pomodoro settings updated successfully
-        refetch()
         onOpenChange(false)
       },
       onError: (error) => {
@@ -64,24 +70,27 @@ export function PomodoroSettingsModal({
     }
   )
 
+  // ✅ Static defaults; do NOT tie them directly to `preferences`
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      workMinutes: preferences?.workMinutes || 25,
-      shortBreakMinutes: preferences?.shortBreakMinutes || 5,
-      longBreakMinutes: preferences?.longBreakMinutes || 15,
-      longBreakEvery: preferences?.longBreakEvery || 4,
-      autoStartNextPhase: preferences?.autoStartNextPhase || false,
-      autoStartNextWork: preferences?.autoStartNextWork || true,
-      soundEnabled: preferences?.soundEnabled || false,
-      notificationsEnabled: preferences?.notificationsEnabled || false,
-      defaultLabel: preferences?.defaultLabel || null,
-      distractionFreeDefault: preferences?.distractionFreeDefault || true,
+      workMinutes: 25,
+      shortBreakMinutes: 5,
+      longBreakMinutes: 15,
+      longBreakEvery: 4,
+      autoStartNextPhase: false,
+      autoStartNextWork: true,
+      soundEnabled: false,
+      notificationsEnabled: false,
+      defaultLabel: null,
+      distractionFreeDefault: true,
     },
   })
 
-  // Update form when preferences load
-  if (preferences && !form.formState.isDirty) {
+  // ✅ Apply server values only when `open && preferences` change — in an effect (not render)
+  useEffect(() => {
+    if (!open || !preferences) return
+
     form.reset({
       workMinutes: preferences.workMinutes,
       shortBreakMinutes: preferences.shortBreakMinutes,
@@ -94,7 +103,7 @@ export function PomodoroSettingsModal({
       defaultLabel: preferences.defaultLabel,
       distractionFreeDefault: preferences.distractionFreeDefault,
     })
-  }
+  }, [open, preferences, form])
 
   const onSubmit = async (data: SettingsFormData) => {
     // Request notification permission if enabling notifications
@@ -112,26 +121,30 @@ export function PomodoroSettingsModal({
   }
 
   const handlePreset = (preset: 'classic' | 'extended' | 'short') => {
-    switch (preset) {
-      case 'classic':
-        form.setValue('workMinutes', 25)
-        form.setValue('shortBreakMinutes', 5)
-        form.setValue('longBreakMinutes', 15)
-        form.setValue('longBreakEvery', 4)
-        break
-      case 'extended':
-        form.setValue('workMinutes', 50)
-        form.setValue('shortBreakMinutes', 10)
-        form.setValue('longBreakMinutes', 20)
-        form.setValue('longBreakEvery', 3)
-        break
-      case 'short':
-        form.setValue('workMinutes', 15)
-        form.setValue('shortBreakMinutes', 3)
-        form.setValue('longBreakMinutes', 10)
-        form.setValue('longBreakEvery', 4)
-        break
-    }
+    const map = {
+      classic: {
+        workMinutes: 25,
+        shortBreakMinutes: 5,
+        longBreakMinutes: 15,
+        longBreakEvery: 4,
+      },
+      extended: {
+        workMinutes: 50,
+        shortBreakMinutes: 10,
+        longBreakMinutes: 20,
+        longBreakEvery: 3,
+      },
+      short: {
+        workMinutes: 15,
+        shortBreakMinutes: 3,
+        longBreakMinutes: 10,
+        longBreakEvery: 4,
+      },
+    }[preset]
+    form.setValue('workMinutes', map.workMinutes)
+    form.setValue('shortBreakMinutes', map.shortBreakMinutes)
+    form.setValue('longBreakMinutes', map.longBreakMinutes)
+    form.setValue('longBreakEvery', map.longBreakEvery)
   }
 
   return (
@@ -192,7 +205,7 @@ export function PomodoroSettingsModal({
                         max={180}
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
+                          field.onChange(parseInt(e.target.value || '0', 10))
                         }
                       />
                     </FormControl>
@@ -214,7 +227,7 @@ export function PomodoroSettingsModal({
                         max={60}
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
+                          field.onChange(parseInt(e.target.value || '0', 10))
                         }
                       />
                     </FormControl>
@@ -236,7 +249,7 @@ export function PomodoroSettingsModal({
                         max={60}
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
+                          field.onChange(parseInt(e.target.value || '0', 10))
                         }
                       />
                     </FormControl>
@@ -258,7 +271,7 @@ export function PomodoroSettingsModal({
                         max={12}
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseInt(e.target.value))
+                          field.onChange(parseInt(e.target.value || '0', 10))
                         }
                       />
                     </FormControl>
@@ -280,7 +293,7 @@ export function PomodoroSettingsModal({
                     <Input
                       placeholder="e.g., Deep Work, Focus Session"
                       {...field}
-                      value={field.value || ''}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                   <FormDescription>
@@ -301,7 +314,7 @@ export function PomodoroSettingsModal({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(v) => field.onChange(!!v)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -322,7 +335,7 @@ export function PomodoroSettingsModal({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(v) => field.onChange(!!v)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -343,7 +356,7 @@ export function PomodoroSettingsModal({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(v) => field.onChange(!!v)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -367,7 +380,7 @@ export function PomodoroSettingsModal({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(v) => field.onChange(!!v)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -388,7 +401,7 @@ export function PomodoroSettingsModal({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(v) => field.onChange(!!v)}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
