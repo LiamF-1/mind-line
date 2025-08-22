@@ -71,8 +71,8 @@ export function useKeyboardShortcuts({
 
         try {
           await stopTimerMutation.mutateAsync({
-            start: stoppedTimer.startedAt,
-            end: endTime,
+            start: new Date(stoppedTimer.startedAt),
+            end: new Date(endTime),
             label: stoppedTimer.assignment.label,
             taskId: stoppedTimer.assignment.taskId,
             eventId: stoppedTimer.assignment.eventId,

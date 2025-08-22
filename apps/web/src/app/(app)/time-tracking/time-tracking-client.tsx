@@ -278,8 +278,8 @@ export function TimeTrackingClient() {
 
       try {
         await stopTimerMutation.mutateAsync({
-          start: stoppedTimer.startedAt,
-          end: endTime,
+          start: new Date(stoppedTimer.startedAt),
+          end: new Date(endTime),
           label: stoppedTimer.assignment.label,
           taskId: stoppedTimer.assignment.taskId,
           eventId: stoppedTimer.assignment.eventId,
@@ -337,7 +337,7 @@ export function TimeTrackingClient() {
 
     try {
       await saveTimerSessionMutation.mutateAsync({
-        start: stoppedTimer.startedAt,
+        start: new Date(stoppedTimer.startedAt),
         end: endTime,
         duration: stoppedTimer.duration,
         label: stoppedTimer.name,

@@ -168,9 +168,10 @@ export function TimerWidget() {
   const handlePhaseCompletion = useCallback(async () => {
     if (!pomodoroEndsAt || !pomodoroRunId) return
 
+    const endsAt = new Date(pomodoroEndsAt)
     const remaining = Math.max(
       0,
-      Math.floor((pomodoroEndsAt.getTime() - Date.now()) / 1000)
+      Math.floor((endsAt.getTime() - Date.now()) / 1000)
     )
 
     if (remaining === 0) {
@@ -204,8 +205,9 @@ export function TimerWidget() {
     )
       return
 
-    const key = `${pomodoroRunId}:${pomodoroEndsAt.getTime()}`
-    const ms = pomodoroEndsAt.getTime() - Date.now()
+    const endsAt = new Date(pomodoroEndsAt)
+    const key = `${pomodoroRunId}:${endsAt.getTime()}`
+    const ms = endsAt.getTime() - Date.now()
 
     if (ms <= 0) {
       if (completedKeyRef.current !== key) {
@@ -325,7 +327,7 @@ export function TimerWidget() {
 
     try {
       await saveTimerSessionMutation.mutateAsync({
-        start: stoppedTimer.startedAt,
+        start: new Date(stoppedTimer.startedAt),
         end: endTime,
         duration: stoppedTimer.duration,
         label: stoppedTimer.name,
@@ -368,8 +370,8 @@ export function TimerWidget() {
 
         try {
           await stopTimerMutation.mutateAsync({
-            start: stoppedTimer.startedAt,
-            end: endTime,
+            start: new Date(stoppedTimer.startedAt),
+            end: new Date(endTime),
             label: stoppedTimer.assignment.label,
             taskId: stoppedTimer.assignment.taskId,
             eventId: stoppedTimer.assignment.eventId,

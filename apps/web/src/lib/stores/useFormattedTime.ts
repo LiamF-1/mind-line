@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useMemo, useState } from 'react'
 import { useTimerStore } from './timer-store'
 
@@ -7,7 +8,7 @@ export function useFormattedTime() {
   const {
     mode,
     stopwatch,
-    pomodoro: { phase, phaseEndsAt, status: pomodoroStatus, cycle },
+    pomodoro: { phase, phaseEndsAt, status: pomodoroStatus, cycle, pausedAt },
     timer,
   } = useTimerStore((s) => ({
     mode: s.mode,
@@ -17,14 +18,14 @@ export function useFormattedTime() {
   }))
 
   // Tick once per second to recompute the display
-  const [, setTick] = useState(0)
+  const [tick, setTick] = useState(0)
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000)
     return () => clearInterval(id)
   }, [])
 
-  const now = Date.now()
   const formattedTime = useMemo(() => {
+    const now = Date.now()
     const pad = (n: number) => n.toString().padStart(2, '0')
 
     if (mode === 'stopwatch') {
@@ -40,12 +41,25 @@ export function useFormattedTime() {
     }
 
     if (mode === 'pomodoro') {
-      const remaining = phaseEndsAt
-        ? Math.max(
+      let remaining = 0
+      if (phaseEndsAt) {
+        if (pomodoroStatus === 'running') {
+          // When running, calculate remaining time normally
+          remaining = Math.max(
             0,
             Math.floor((new Date(phaseEndsAt).getTime() - now) / 1000)
           )
-        : 0
+        } else if (pomodoroStatus === 'paused' && pausedAt) {
+          // When paused, show remaining time as of when it was paused
+          remaining = Math.max(
+            0,
+            Math.floor(
+              (new Date(phaseEndsAt).getTime() - new Date(pausedAt).getTime()) /
+                1000
+            )
+          )
+        }
+      }
       const h = Math.floor(remaining / 3600)
       const m = Math.floor((remaining % 3600) / 60)
       const s = remaining % 60
@@ -74,7 +88,7 @@ export function useFormattedTime() {
     }
 
     return '00:00'
-  }, [mode, stopwatch, phaseEndsAt, now, timer])
+  }, [mode, stopwatch, phaseEndsAt, pausedAt, pomodoroStatus, timer, tick])
 
   const isRunning =
     (mode === 'stopwatch' && stopwatch.status === 'running') ||

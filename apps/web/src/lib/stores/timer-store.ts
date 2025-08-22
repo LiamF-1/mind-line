@@ -183,7 +183,9 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
           const now = new Date()
           const elapsed = state.stopwatch.startedAt
             ? Math.floor(
-                (now.getTime() - state.stopwatch.startedAt.getTime()) / 1000
+                (now.getTime() -
+                  new Date(state.stopwatch.startedAt).getTime()) /
+                  1000
               )
             : state.stopwatch.elapsed
 
@@ -217,7 +219,7 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
 
         if (state.stopwatch.status === 'running' && state.stopwatch.startedAt) {
           stopwatchState.elapsed = Math.floor(
-            (Date.now() - state.stopwatch.startedAt.getTime()) / 1000
+            (Date.now() - new Date(state.stopwatch.startedAt).getTime()) / 1000
           )
         }
 
@@ -284,9 +286,10 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
             return state
           }
 
-          const pausedDuration = Date.now() - state.pomodoro.pausedAt.getTime()
+          const pausedDuration =
+            Date.now() - new Date(state.pomodoro.pausedAt).getTime()
           const newPhaseEndsAt = new Date(
-            state.pomodoro.phaseEndsAt.getTime() + pausedDuration
+            new Date(state.pomodoro.phaseEndsAt).getTime() + pausedDuration
           )
 
           return {
@@ -364,10 +367,11 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
 
           // Only log if we've worked for at least 1 minute
           const workDuration =
-            endTime.getTime() - state.pomodoro.phaseStartedAt.getTime()
+            endTime.getTime() -
+            new Date(state.pomodoro.phaseStartedAt).getTime()
           if (workDuration >= 60000) {
             result.partialWork = {
-              start: state.pomodoro.phaseStartedAt,
+              start: new Date(state.pomodoro.phaseStartedAt),
               end: endTime,
             }
           }
@@ -508,7 +512,9 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
 
           const now = new Date()
           const additionalElapsed = timer.startedAt
-            ? Math.floor((now.getTime() - timer.startedAt.getTime()) / 1000)
+            ? Math.floor(
+                (now.getTime() - new Date(timer.startedAt).getTime()) / 1000
+              )
             : 0
 
           return {
@@ -632,7 +638,8 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
             state.stopwatch.startedAt
           ) {
             return Math.floor(
-              (Date.now() - state.stopwatch.startedAt.getTime()) / 1000
+              (Date.now() - new Date(state.stopwatch.startedAt).getTime()) /
+                1000
             )
           }
           return state.stopwatch.elapsed
@@ -642,7 +649,9 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
               const remaining = Math.max(
                 0,
                 Math.floor(
-                  (state.pomodoro.phaseEndsAt.getTime() - Date.now()) / 1000
+                  (new Date(state.pomodoro.phaseEndsAt).getTime() -
+                    Date.now()) /
+                    1000
                 )
               )
               return remaining
@@ -654,8 +663,8 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
               const remaining = Math.max(
                 0,
                 Math.floor(
-                  (state.pomodoro.phaseEndsAt.getTime() -
-                    state.pomodoro.pausedAt.getTime()) /
+                  (new Date(state.pomodoro.phaseEndsAt).getTime() -
+                    new Date(state.pomodoro.pausedAt).getTime()) /
                     1000
                 )
               )
@@ -673,7 +682,9 @@ export const useTimerStore = createWithEqualityFn<TimerStore>()(
               if (timer.status === 'running') {
                 const remaining = Math.max(
                   0,
-                  Math.floor((timer.endsAt.getTime() - Date.now()) / 1000)
+                  Math.floor(
+                    (new Date(timer.endsAt).getTime() - Date.now()) / 1000
+                  )
                 )
                 return remaining
               } else if (timer.status === 'paused') {

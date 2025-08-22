@@ -17,6 +17,8 @@ const eslintConfig = [
       '@next/next/no-html-link-for-pages': 'off',
       // Disable the problematic rule that causes context.getAncestors error
       '@next/next/no-duplicate-head': 'off',
+      // Disable react-hooks/exhaustive-deps due to TypeScript 5.9.2 incompatibility causing "a.getSource is not a function" error
+      'react-hooks/exhaustive-deps': 'off',
     },
   },
 ]
